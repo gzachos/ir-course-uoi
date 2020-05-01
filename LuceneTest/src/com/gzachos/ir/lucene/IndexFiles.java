@@ -24,7 +24,7 @@ import com.gzachos.ir.Config;
 
 public class IndexFiles {
 	
-	public static void createIndex() {
+	public static void createIndex(boolean overwriteIndex) {
 		try {
 			Path indexDirPath = Paths.get(Config.INDEX_PATH);
 			
@@ -44,7 +44,9 @@ public class IndexFiles {
 			
 			if (DirectoryReader.indexExists(indexDir)) {
 				System.out.println("Index already exists: " + indexDirPath.toString());
-				return;
+				if (!overwriteIndex)
+					return;
+				System.out.println("About to overwrite existing index...");
 			}
 			
 			// Create a new config, using StandardAnalyzer as the analyzer.
