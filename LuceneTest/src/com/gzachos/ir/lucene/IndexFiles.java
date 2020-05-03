@@ -10,7 +10,6 @@ import java.util.Date;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
@@ -23,6 +22,7 @@ import com.gzachos.ir.Config;
 
 
 public class IndexFiles {
+	private static int n = 0;
 	
 	public static void createIndex(boolean overwriteIndex) {
 		try {
@@ -91,7 +91,7 @@ public class IndexFiles {
 	}
 	
 	private static void indexDoc(IndexWriter indexWriter, Path filePath) {
-		System.out.println("Indexing \"" + filePath.getFileName() + "\"");
+		System.out.println(++n + " : Indexing \"" + filePath.getFileName() + "\"");
 		try {
 			Document doc = parseVirtualXml(filePath);
 			indexWriter.addDocument(doc);
@@ -103,12 +103,12 @@ public class IndexFiles {
 	
 	private static Document parseVirtualXml(Path filePath) throws IOException {
 		Document doc = new Document();
-		
 		BufferedReader br = Files.newBufferedReader(filePath);
 		boolean readURL = false, readTitle = false, readHeading = false,
 				readContent = false;
-		String line, contentStr = "", mediaStr = "", quoteStr = "", currHeading = "";
-		String url = "", title = "";
+		String line, contentStr = "", mediaStr = "", quoteStr = "",
+				currHeading = "", summaryStr = "", url = "", title = "";
+		
 		while ((line = br.readLine()) != null) {
 			if (line.equals("<url>"))
 				readURL = true;
@@ -118,9 +118,9 @@ public class IndexFiles {
 				readTitle = true;
 			else if (line.equals("</title>"))
 				readTitle = false;
-			else if (line.equals("<heading>"))
+			else if (line.equals("<heading>")) {
 				readHeading = true;
-			else if (line.equals("</heading>"))
+			} else if (line.equals("</heading>"))
 				readHeading = false;
 			else if (line.equals("<content>")) {
 				readContent = true;
@@ -140,6 +140,8 @@ public class IndexFiles {
 					quoteStr = "";
 				} else if (currHeading.equals("__infobox__")) {
 					// Do nothing
+				} else if (currHeading.equals("__summary__")) {
+					summaryStr = "";
 				} else if (!currHeading.equals(title)){
 					contentStr += line + "\n";
 				}
@@ -149,13 +151,16 @@ public class IndexFiles {
 					mediaStr += line + "\n";
 				else if (currHeading.equals("__quotes__"))
 					quoteStr += line + "\n";
+				else if (currHeading.equals("__summary__"))
+					summaryStr += line + "\n";  // Summary should only one line.
 			}
 		}
 		br.close();
 		
 		doc.add(new StoredField("url", url));
-		doc.add(new StringField("title", title, Field.Store.YES)); // indexed verbatim as a single token
+		doc.add(new TextField("title", title, Field.Store.YES));
 		doc.add(new TextField("content", contentStr, Field.Store.NO));
+		doc.add(new StoredField("summary", summaryStr));
 		
 		if (mediaStr.length() > 0) {
 			TextField multimediaField = new TextField("multimedia", mediaStr, Field.Store.NO);
@@ -166,19 +171,7 @@ public class IndexFiles {
 			TextField quotesField = new TextField("quotes", quoteStr, Field.Store.NO);
 			doc.add(quotesField);
 		}
-		
-//		if (quoteStr.length() > 0) {
-//			System.out.println(url);
-//			System.out.println("\n");
-//			System.out.println(title);
-//			System.out.println("\n");
-//			System.out.println(contentStr);
-//			System.out.println("\n");
-//			System.out.println(mediaStr);
-//			System.out.println("\n");
-//			System.out.println(quoteStr);
-//			System.exit(1);
-//		}
+
 		return doc;
 	}
 	
