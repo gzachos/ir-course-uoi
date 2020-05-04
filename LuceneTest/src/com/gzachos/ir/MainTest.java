@@ -9,7 +9,7 @@ public class MainTest {
 		boolean overwriteIndex = false;
 		IndexFiles.createIndex(overwriteIndex);
 		SearchFiles.searchFiles();
-		System.out.println("Terminated...");
+		System.out.println("\nTerminated...");
 	}
 
 }

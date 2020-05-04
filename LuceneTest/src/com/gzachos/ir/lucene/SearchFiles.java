@@ -12,8 +12,8 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -21,12 +21,12 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
 
 import com.gzachos.ir.Config;
+import com.gzachos.ir.Globals;
 
 public class SearchFiles {
 	
 	public static void searchFiles() {
 		try {
-			String field = "title";
 			Path indexDirPath = Paths.get(Config.INDEX_PATH);
 			IndexReader indexReader = DirectoryReader.open(FSDirectory.open(indexDirPath));
 			IndexSearcher indexSearcher = new IndexSearcher(indexReader);
@@ -34,7 +34,8 @@ public class SearchFiles {
 			
 			InputStreamReader inStreamReader =  new InputStreamReader(System.in, StandardCharsets.UTF_8);
 			BufferedReader inputReader = new BufferedReader(inStreamReader);
-			QueryParser queryParser = new QueryParser(field, standardAnalyzer);
+			MultiFieldQueryParser queryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, standardAnalyzer);
+			System.out.println("Press \"Enter\" to exit search...");
 			while (true) {
 				System.out.print("> ");
 				System.out.flush();
@@ -69,7 +70,7 @@ public class SearchFiles {
 			String title = doc.get("title");
 			String summary = doc.get("summary");
 			if (url != null) {
-				System.out.println(i + " - " + title + " - " + url);
+				System.out.println((i+1) + " - " + title + " - " + url);
 				System.out.println(summary + "\n");
 			}
 		}
