@@ -45,7 +45,7 @@ public class SearchFiles {
 				if (line.length() == 0)
 					break;
 				Query query = queryParser.parse(line);
-				System.out.println("Searching for: " + query.toString(field) + " in field " + field);
+				System.out.println("Searching for: \"" + query.toString() + "\"");
 				doPagingSearch(indexSearcher, query, 10);
 			}
 			
