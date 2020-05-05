@@ -8,7 +8,7 @@ import com.gzachos.ir.lucene.SearchFiles;
 public class MainTest {
 
 	public static void main(String[] args) {
-		boolean overwriteIndex = false;
+		boolean overwriteIndex = true;
 		
 		if (overwriteIndex) {
 			@SuppressWarnings("resource")
