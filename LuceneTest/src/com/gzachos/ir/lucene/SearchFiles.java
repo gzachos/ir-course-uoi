@@ -14,6 +14,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -35,6 +36,7 @@ public class SearchFiles {
 			InputStreamReader inStreamReader =  new InputStreamReader(System.in, StandardCharsets.UTF_8);
 			BufferedReader inputReader = new BufferedReader(inStreamReader);
 			MultiFieldQueryParser queryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, standardAnalyzer);
+			queryParser.setDefaultOperator(Operator.AND);
 			System.out.println("Press \"Enter\" to exit search...");
 			while (true) {
 				System.out.print("> ");
@@ -62,7 +64,7 @@ public class SearchFiles {
 		TopDocs searchResults = indexSearcher.search(query, hitsPerPage);
 		ScoreDoc[] hits = searchResults.scoreDocs;
 		int numTotalHits = Math.toIntExact(searchResults.totalHits.value);
-		System.out.println(numTotalHits + " total matching documents");
+		System.out.println(numTotalHits + " total matching documents\n");
 		
 		for (int i = 0; i < hits.length; i++) {
 			Document doc = indexSearcher.doc(hits[i].doc);
@@ -71,7 +73,7 @@ public class SearchFiles {
 			String summary = doc.get("summary");
 			if (url != null) {
 				System.out.println((i+1) + " - " + title + " - " + url);
-				System.out.println(summary + "\n");
+				System.out.println(summary);
 			}
 		}
 	}
