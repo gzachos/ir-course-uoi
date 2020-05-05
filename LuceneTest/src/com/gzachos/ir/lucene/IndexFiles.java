@@ -146,13 +146,14 @@ public class IndexFiles {
 					contentStr += line + "\n";
 				}
 			} else if (readContent) {
-				contentStr += line + "\n";
 				if (currHeading.equals("__multimedia__"))
 					mediaStr += line + "\n";
 				else if (currHeading.equals("__quotes__"))
 					quoteStr += line + "\n";
 				else if (currHeading.equals("__summary__"))
 					summaryStr += line + "\n";  // Summary should only one line.
+				else  // Handle simple sections and infobox.
+					contentStr += line + "\n";
 			}
 		}
 		br.close();
