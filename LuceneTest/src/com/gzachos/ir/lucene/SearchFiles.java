@@ -50,12 +50,17 @@ public class SearchFiles {
 				line = line.trim();
 				if (line.length() == 0)
 					break;
-				Query query = queryParser.parse(line);
-				System.out.println("Searching for: \"" + query.toString() + "\"");
-				doPagingSearch(indexSearcher, query, 5);
+				try {
+					Query query = queryParser.parse(line);
+					System.out.println("Searching for: \"" + query.toString() + "\"");
+					ArrayList<ScoreDoc> returnedDocs = doPagingSearch(indexSearcher, query, 5, null);
+				//	ArrayList<ScoreDoc> returnedDocs1 = doPagingSearch(indexSearcher, query, 5, returnedDocs.get(returnedDocs.size()-1));
+				} catch (ParseException pe) {
+					// System.err.println("Cannot parse query!");
+				}
 			}
 			
-		} catch (IOException | ParseException e) {
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Exception e) {
@@ -63,19 +68,24 @@ public class SearchFiles {
 		}
 	}
 	
-	public static void doPagingSearch(IndexSearcher indexSearcher, Query query, int numPages) throws IOException {
+	public static ArrayList<ScoreDoc> doPagingSearch(IndexSearcher indexSearcher, Query query, int numPages, ScoreDoc after) throws IOException {
 		int docsToFetch = numPages * Globals.HITS_PER_PAGE;
 		long startTime = System.currentTimeMillis();
-		TopDocs searchResults = indexSearcher.search(query, docsToFetch + Globals.HITS_PER_PAGE);
+		TopDocs searchResults;
+		if (after == null) {
+			searchResults = indexSearcher.search(query, docsToFetch + Globals.HITS_PER_PAGE);
+		} else {
+			searchResults = indexSearcher.searchAfter(after, query, docsToFetch + Globals.HITS_PER_PAGE);
+		}
 		double searchTime = (System.currentTimeMillis() - startTime) / 1000.0;
 		ScoreDoc[] hitsArray = searchResults.scoreDocs;
 		ArrayList<ScoreDoc> hits = new ArrayList<ScoreDoc>(Arrays.asList(hitsArray));
-		ArrayList<Document> returnedDocs = new ArrayList<Document>();
+		ArrayList<ScoreDoc> returnedDocs = new ArrayList<ScoreDoc>();
 		TotalHits totalHits = searchResults.totalHits; 
 		int numTotalHits = Math.toIntExact(totalHits.value);
 		if (numTotalHits == 0) {
 			System.out.println("Found 0 results");
-			return;
+			return returnedDocs;
 		}
 		String relationStr = (totalHits.relation == TotalHits.Relation.GREATER_THAN_OR_EQUAL_TO) ? "More than" : "About";
 		System.out.println("\n" + relationStr + " " + numTotalHits + " results (" + searchTime + " seconds)\n");
@@ -92,9 +102,10 @@ public class SearchFiles {
 
 		for (int i = 0; i < end; i++) {
 			boolean skip = false;
-			Document doc = indexSearcher.doc(hits.get(i).doc);
+			ScoreDoc scoreDoc = hits.get(i);
+			Document doc = indexSearcher.doc(scoreDoc.doc);
 			for (int j = 0; j < returnedDocs.size(); j++) {
-				Document prevDoc = returnedDocs.get(j);
+				Document prevDoc = indexSearcher.doc(returnedDocs.get(j).doc);
 				if (prevDoc.get("title").equals(doc.get("title"))) {
 					skip = true;
 					skippedDocs++;
@@ -103,7 +114,7 @@ public class SearchFiles {
 			}
 			
 			if (!skip) {
-				returnedDocs.add(doc);
+				returnedDocs.add(scoreDoc);
 				numReturnedDocs = returnedDocs.size();
 				
 				String url = doc.get("url");
@@ -137,6 +148,7 @@ public class SearchFiles {
 		}
 		System.out.println("\n\nreturned: " + returnedDocs.size());
 		System.out.println("skipped:  " + skippedDocs);
+		return returnedDocs;
 	}
 	
 }

@@ -107,7 +107,8 @@ public class IndexFiles {
 		boolean readURL = false, readTitle = false, readHeading = false,
 				readContent = false;
 		String line, contentStr = "", mediaStr = "", quoteStr = "",
-				currHeading = "", summaryStr = "", url = "", title = "";
+				currHeading = "", summaryStr = "", url = "", title = "",
+				referencesStr = "";
 		
 		while ((line = br.readLine()) != null) {
 			if (line.equals("<url>"))
@@ -142,6 +143,8 @@ public class IndexFiles {
 					// Do nothing
 				} else if (currHeading.equals("__summary__")) {
 					summaryStr = "";
+				} else if (currHeading.equals("References")) {
+					referencesStr = "";
 				} else if (!currHeading.equals(title)){
 					contentStr += line + "\n";
 				}
@@ -152,6 +155,8 @@ public class IndexFiles {
 					quoteStr += line + "\n";
 				else if (currHeading.equals("__summary__"))
 					summaryStr += line + "\n";  // Summary should only one line.
+				else if (currHeading.contentEquals("References"))
+					referencesStr += line + "\n";
 				else  // Handle simple sections and infobox.
 					contentStr += line + "\n";
 			}
@@ -163,16 +168,13 @@ public class IndexFiles {
 		doc.add(new TextField("content", contentStr, Field.Store.NO));
 		doc.add(new StoredField("summary", summaryStr));
 		
-		if (mediaStr.length() > 0) {
-			TextField multimediaField = new TextField("multimedia", mediaStr, Field.Store.NO);
-			doc.add(multimediaField);
-		}
+		if (mediaStr.length() > 0)
+			doc.add(new TextField("multimedia", mediaStr, Field.Store.NO));
+		if (quoteStr.length() > 0)
+			doc.add(new TextField("quotes", quoteStr, Field.Store.NO));
+		if (referencesStr.length() > 0)
+			doc.add(new TextField("references", referencesStr, Field.Store.NO));
 		
-		if (quoteStr.length() > 0) {
-			TextField quotesField = new TextField("quotes", quoteStr, Field.Store.NO);
-			doc.add(quotesField);
-		}
-
 		return doc;
 	}
 	
