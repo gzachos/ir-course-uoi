@@ -38,7 +38,7 @@ public class SearchFiles {
 			
 			InputStreamReader inStreamReader =  new InputStreamReader(System.in, StandardCharsets.UTF_8);
 			BufferedReader inputReader = new BufferedReader(inStreamReader);
-			MultiFieldQueryParser queryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, standardAnalyzer);
+			MultiFieldQueryParser queryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, standardAnalyzer, Globals.QUERY_BOOSTS);
 			queryParser.setDefaultOperator(Operator.AND);
 			System.out.println("Press \"Enter\" to exit search...");
 			while (true) {
