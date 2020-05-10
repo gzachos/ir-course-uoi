@@ -162,7 +162,6 @@ public class SearchFiles {
 			Document doc = indexSearcher.doc(scoreDocs.get(i).doc);
 			String url = doc.get("url");
 			String title = doc.get("title");
-			@SuppressWarnings("unused")
 			String summary = doc.get("summary");
 			
 			if (url != null) {
