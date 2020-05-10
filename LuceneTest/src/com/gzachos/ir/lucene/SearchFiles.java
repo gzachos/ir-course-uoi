@@ -53,8 +53,10 @@ public class SearchFiles {
 				try {
 					Query query = queryParser.parse(line);
 					System.out.println("Searching for: \"" + query.toString() + "\"");
-					ArrayList<ScoreDoc> returnedDocs = doPagingSearch(indexSearcher, query, 5, null);
-				//	ArrayList<ScoreDoc> returnedDocs1 = doPagingSearch(indexSearcher, query, 5, returnedDocs.get(returnedDocs.size()-1));
+					SearchResult result0 = doPagingSearch(indexSearcher, query, 5, null);
+					printReturnedDocs(result0, indexSearcher);
+					SearchResult result1 = doPagingSearch(indexSearcher, query, 5, result0);
+					printReturnedDocs(result1, indexSearcher);
 				} catch (ParseException pe) {
 					// System.err.println("Cannot parse query!");
 				}
@@ -68,87 +70,107 @@ public class SearchFiles {
 		}
 	}
 	
-	public static ArrayList<ScoreDoc> doPagingSearch(IndexSearcher indexSearcher, Query query, int numPages, ScoreDoc after) throws IOException {
+	public static SearchResult doPagingSearch(IndexSearcher indexSearcher, Query query, int numPages,
+			SearchResult prevResults) throws IOException {
 		int docsToFetch = numPages * Globals.HITS_PER_PAGE;
-		long startTime = System.currentTimeMillis();
 		TopDocs searchResults;
-		if (after == null) {
-			searchResults = indexSearcher.search(query, docsToFetch + Globals.HITS_PER_PAGE);
+		int numPrevReturnedDocs = 0;
+		double searchTime = 0;
+		ArrayList<ScoreDoc> prevReturnedDocs = null;
+	
+		if (prevResults != null && prevResults.getNumHits() > 0) {
+			prevReturnedDocs = prevResults.getHits();
+			numPrevReturnedDocs = prevReturnedDocs.size();
+			ScoreDoc lastReturnedDoc = prevReturnedDocs.get(numPrevReturnedDocs-1);
+			searchResults = indexSearcher.searchAfter(lastReturnedDoc, query, docsToFetch + Globals.HITS_PER_PAGE);
 		} else {
-			searchResults = indexSearcher.searchAfter(after, query, docsToFetch + Globals.HITS_PER_PAGE);
+			long startTime = System.currentTimeMillis();
+			searchResults = indexSearcher.search(query, docsToFetch + Globals.HITS_PER_PAGE);
+			searchTime = (System.currentTimeMillis() - startTime) / 1000.0;
 		}
-		double searchTime = (System.currentTimeMillis() - startTime) / 1000.0;
-		ScoreDoc[] hitsArray = searchResults.scoreDocs;
-		ArrayList<ScoreDoc> hits = new ArrayList<ScoreDoc>(Arrays.asList(hitsArray));
+		boolean isPartialSearch = (prevResults != null); // TODO verify condition
+		
 		ArrayList<ScoreDoc> returnedDocs = new ArrayList<ScoreDoc>();
 		TotalHits totalHits = searchResults.totalHits; 
 		int numTotalHits = Math.toIntExact(totalHits.value);
-		if (numTotalHits == 0) {
-			System.out.println("Found 0 results");
-			return returnedDocs;
-		}
-		String relationStr = (totalHits.relation == TotalHits.Relation.GREATER_THAN_OR_EQUAL_TO) ? "More than" : "About";
-		System.out.println("\n" + relationStr + " " + numTotalHits + " results (" + searchTime + " seconds)\n");
-		ScoreDoc lastFetchedDoc = hits.get(hits.size()-1);
+		ScoreDoc[] hitsArray = searchResults.scoreDocs;
+		ArrayList<ScoreDoc> hits = new ArrayList<ScoreDoc>(Arrays.asList(hitsArray));
+		int numHits = hits.size();
+		if (numHits == 0)
+			return new SearchResult(returnedDocs, searchTime, numTotalHits, totalHits.relation, isPartialSearch);
 
-		int end = docsToFetch;
-		boolean notEnoughTotalHits = false;
-		if (docsToFetch >= numTotalHits) {
-			end = numTotalHits;
-			notEnoughTotalHits = true;
-		}
-		int skippedDocs = 0, page = 0;
+		ScoreDoc lastFetchedDoc = hits.get(numHits-1);
+		boolean haveEnoughTotalHits = (docsToFetch < numTotalHits);
 		int numReturnedDocs = 0;
-
-		for (int i = 0; i < end; i++) {
-			boolean skip = false;
+		for (int i = 0; i < numHits; i++) {
 			ScoreDoc scoreDoc = hits.get(i);
 			Document doc = indexSearcher.doc(scoreDoc.doc);
-			for (int j = 0; j < returnedDocs.size(); j++) {
-				Document prevDoc = indexSearcher.doc(returnedDocs.get(j).doc);
-				if (prevDoc.get("title").equals(doc.get("title"))) {
-					skip = true;
-					skippedDocs++;
-					break;
-				}
-			}
-			
-			if (!skip) {
+
+			if (!alreadyReturnedDoc(doc, indexSearcher, prevReturnedDocs, returnedDocs)) {
 				returnedDocs.add(scoreDoc);
-				numReturnedDocs = returnedDocs.size();
-				
-				String url = doc.get("url");
-				String title = doc.get("title");
-				String summary = doc.get("summary");
-				
-				if (url != null) {
-					System.out.println(numReturnedDocs + " - '" + title + "' - " + url);
-				//	System.out.println(summary);
-				}
-				
-				if (numReturnedDocs == numTotalHits || numReturnedDocs == docsToFetch)
+				if ((numReturnedDocs = returnedDocs.size()) == docsToFetch)
 					break;
-				
-				if (numReturnedDocs % Globals.HITS_PER_PAGE == 0)
-					System.out.println("\n################## Page " + (++page + 1) + "\n");
 			}
 
-			if (i == (end-1) && !notEnoughTotalHits) {
-				int newDocsToFetch = Math.max(Globals.HITS_PER_PAGE, docsToFetch - numReturnedDocs);
-				// System.out.println("About to fetch: " + newDocsToFetch + " more docs");
+			if (i == (numHits-1) && haveEnoughTotalHits) {
+				int newDocsToFetch = (docsToFetch - numReturnedDocs) + Globals.HITS_PER_PAGE;
+//				System.out.println("About to fetch: " + newDocsToFetch + " more docs");
 				TopDocs newSearchResults = indexSearcher.searchAfter(lastFetchedDoc, query, newDocsToFetch);
 				ScoreDoc[] newHitsArray = newSearchResults.scoreDocs;
 				ArrayList<ScoreDoc> newHits = new ArrayList<ScoreDoc>(Arrays.asList(newHitsArray));
 				hits.addAll(newHits);
-				int numNewHits = newHits.size();
-				// System.out.println("Fetched " + numNewHits + " more docs");
-				end += numNewHits;
-				lastFetchedDoc = hits.get(hits.size()-1);
+//				System.out.println("Fetched " + newHits.size() + " more docs");
+				numHits += newHits.size();
+				lastFetchedDoc = hits.get(hits.size()-1); // In case of 0 hits, lastFetchedDoc value will be retained.
 			}
 		}
-		System.out.println("\n\nreturned: " + returnedDocs.size());
-		System.out.println("skipped:  " + skippedDocs);
-		return returnedDocs;
+		return new SearchResult(returnedDocs, searchTime, numTotalHits, totalHits.relation, isPartialSearch);
 	}
 	
+	private static boolean alreadyReturnedDoc(Document doc, IndexSearcher indexSearcher, ArrayList<ScoreDoc> prevReturnedDocs,
+			ArrayList<ScoreDoc> returnedDocs) throws IOException {
+		Document prevDoc;
+		String docTitle = doc.get("title");
+		
+		if (prevReturnedDocs != null) {
+			for (int j = 0; j < prevReturnedDocs.size(); j++) {
+				prevDoc = indexSearcher.doc(prevReturnedDocs.get(j).doc);
+				if (prevDoc.get("title").equals(docTitle))
+					return true;
+			}
+		}
+		
+		for (int j = 0; j < returnedDocs.size(); j++) {
+			prevDoc = indexSearcher.doc(returnedDocs.get(j).doc);
+			if (prevDoc.get("title").equals(docTitle))
+				return true;
+		}
+		return false;
+	}
+	
+	private static void printReturnedDocs(SearchResult searchResult, IndexSearcher indexSearcher) throws IOException {
+		int page = 0;
+
+		if (searchResult == null)
+			return;
+		
+		if (!searchResult.isPartialSearchResult())
+			System.out.println(searchResult.getStatsStr());
+		
+		ArrayList<ScoreDoc> scoreDocs = searchResult.getHits();
+		for (int i = 0; i < scoreDocs.size(); i++) {
+			Document doc = indexSearcher.doc(scoreDocs.get(i).doc);
+			String url = doc.get("url");
+			String title = doc.get("title");
+			@SuppressWarnings("unused")
+			String summary = doc.get("summary");
+			
+			if (url != null) {
+				if (i % Globals.HITS_PER_PAGE == 0)
+					System.out.println("\n################## Page " + (++page) + "\n");
+				System.out.println((i+1) + " - '" + title + "' - " + url);
+				System.out.println(summary);
+			}
+		}
+	}
 }

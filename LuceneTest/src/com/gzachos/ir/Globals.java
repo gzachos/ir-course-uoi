@@ -12,5 +12,12 @@ public class Globals {
 			"quotes",      1.0f,
 			"references",  0.1f
 	);
+//	public static final Map<String, Float> QUERY_BOOSTS = Map.of(
+//	"title",       1.0f,
+//	"content",     1.0f,
+//	"multimedia",  1.0f,
+//	"quotes",      1.0f,
+//	"references",  1.0f
+//);
 }
 
