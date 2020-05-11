@@ -21,12 +21,17 @@ import org.apache.lucene.store.FSDirectory;
 import com.gzachos.ir.Config;
 
 
-public class IndexFiles {
-	private static int n = 0;
+public class FileIndexer {
+	private int n = 0;
+	private String indexPath;
 	
-	public static void createIndex(boolean overwriteIndex) {
+	public FileIndexer(String indexPath) {
+		this.indexPath = indexPath;
+	}
+	
+	public void createIndex(boolean overwriteIndex) {
 		try {
-			Path indexDirPath = Paths.get(Config.INDEX_PATH);
+			Path indexDirPath = Paths.get(indexPath);
 			
 			if (!Files.isDirectory(indexDirPath)) {
 				System.err.println(Config.INDEX_PATH + ": Not a directory");
@@ -69,7 +74,7 @@ public class IndexFiles {
 		}
 	}
 	
-	private static void indexDocs(final IndexWriter indexWriter) {
+	private void indexDocs(final IndexWriter indexWriter) {
 		Path corpusDirPath = Paths.get(Config.CORPUS_PATH);
 		
 		if (!Files.isDirectory(corpusDirPath)) {
@@ -90,7 +95,7 @@ public class IndexFiles {
 		}
 	}
 	
-	private static void indexDoc(IndexWriter indexWriter, Path filePath) {
+	private void indexDoc(IndexWriter indexWriter, Path filePath) {
 		System.out.println(++n + " : Indexing \"" + filePath.getFileName() + "\"");
 		try {
 			Document doc = parseVirtualXml(filePath);
@@ -101,7 +106,7 @@ public class IndexFiles {
 		}
 	}
 	
-	private static Document parseVirtualXml(Path filePath) throws IOException {
+	private Document parseVirtualXml(Path filePath) throws IOException {
 		Document doc = new Document();
 		BufferedReader br = Files.newBufferedReader(filePath);
 		boolean readURL = false, readTitle = false, readHeading = false,
