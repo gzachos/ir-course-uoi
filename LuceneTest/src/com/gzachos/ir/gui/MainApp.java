@@ -3,6 +3,7 @@ package com.gzachos.ir.gui;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javafx.application.Application;
+import javafx.application.HostServices;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -13,8 +14,10 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
+	private static MainApp instance = new MainApp();
 	private Stage stage;
 	private String programName = "WikiSearch 0.1.0 BETA";
+	private HostServices hostServices;
 	
 	public static void main(String[] args) {
 		launch(args);
@@ -38,6 +41,7 @@ public class MainApp extends Application {
 			primaryStage.getIcons().add(
 					new Image(MainApp.class.getResourceAsStream("../res/cse-logo.png"))
 			);
+			hostServices = getHostServices();
 			primaryStage.show();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -61,5 +65,13 @@ public class MainApp extends Application {
 		
 		if (exitConfirmed.get() == true)
 			stage.close();
+	}
+	
+	public HostServices getServices() {
+		return hostServices;
+	}
+	
+	public static MainApp getInstance() {
+		return instance;
 	}
 }
