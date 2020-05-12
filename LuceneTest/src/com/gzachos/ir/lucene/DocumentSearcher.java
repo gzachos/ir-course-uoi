@@ -43,7 +43,7 @@ public class DocumentSearcher {
 		}
 	}
 	
-	public Query executeQuery(String queryStr) {
+	public Query parseQuery(String queryStr) {
 		if (queryStr == null)
 			return null;
 		queryStr = queryStr.trim();
@@ -175,5 +175,24 @@ public class DocumentSearcher {
 				System.out.println(summary);
 			}
 		}
+	}
+	
+	public ArrayList<Document> getDocuments(SearchResult searchResult) {
+		if (searchResult == null)
+			return null;
+		
+		ArrayList<Document> docs = new ArrayList<Document>();
+		ArrayList<ScoreDoc> scoreDocs = searchResult.getHits();
+		for (int i = 0; i < scoreDocs.size(); i++) {
+			Document doc;
+			try {
+				doc = indexSearcher.doc(scoreDocs.get(i).doc);
+				docs.add(doc);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		return docs;
 	}
 }

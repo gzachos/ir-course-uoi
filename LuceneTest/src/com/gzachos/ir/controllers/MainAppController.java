@@ -7,13 +7,17 @@ import com.gzachos.ir.SearchEngine;
 
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -33,10 +37,36 @@ public class MainAppController implements Initializable {
 			public void handle(KeyEvent event) {
 				if (event.getCharacter().equals("\r")) {
 					String queryStr = mainSearchArea.getText();
-					searchEngine.searchFor(queryStr);
+					if (queryStr.strip().length() == 0)
+						return;
+					searchEngine.searchFor(queryStr, 5);
+					invokeResultPresenter();
 				}
 			}
 		});
+	}
+	
+	private void invokeResultPresenter() {
+		try{
+			FXMLLoader fxmlLoader = new FXMLLoader(
+					getClass().getResource("../gui/ResultPresenter.fxml")
+			);
+			Parent root = (Parent) fxmlLoader.load();
+			Stage stage = new Stage();
+			stage.initModality(Modality.APPLICATION_MODAL);
+			stage.setMinWidth(1280);
+			stage.setMinHeight(720); // TODO verify value
+			// stage.setOnCloseRequest(e -> initEditorArea());
+			stage.setTitle("WikiSearch 0.1.0 BETA");
+			stage.getIcons().add(
+					new Image(MainAppController.class.getResourceAsStream("../res/cse-logo.png"))
+			);
+			stage.setScene(new Scene(root));
+			stage.show();
+			root.requestFocus();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public static MainAppController getInstance() {

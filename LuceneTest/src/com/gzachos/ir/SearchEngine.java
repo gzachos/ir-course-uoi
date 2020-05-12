@@ -1,12 +1,15 @@
 package com.gzachos.ir;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Stack;
 
+import org.apache.lucene.document.Document;
 import org.apache.lucene.search.Query;
 
 import com.gzachos.ir.lucene.DocumentSearcher;
 import com.gzachos.ir.lucene.FileIndexer;
+import com.gzachos.ir.lucene.QueryInfo;
 import com.gzachos.ir.lucene.SearchResult;
 
 public class SearchEngine {
@@ -15,12 +18,15 @@ public class SearchEngine {
 	boolean overwriteIndex;
 	private FileIndexer fileIndexer;
 	private DocumentSearcher docSearcher;
-	private Stack<Query> queries;
+	private Stack<QueryInfo> queryInfos;
+	private QueryInfo currentQueryInfo;
+	ArrayList<Document> pendingDocHits;
 	
 	private SearchEngine() {
 		 fileIndexer = new FileIndexer(Config.INDEX_PATH);
 		 docSearcher = new DocumentSearcher(Config.INDEX_PATH);
-		 queries = new Stack<Query>();
+		 queryInfos = new Stack<QueryInfo>();
+		 pendingDocHits = null;
 		 overwriteIndex = false;
 		 createIndex();
 	}
@@ -31,13 +37,32 @@ public class SearchEngine {
 		return instance;
 	}
 	
-	public void searchFor(String queryStr) {
-		Query query = docSearcher.executeQuery(queryStr);
-		queries.push(query);
-		SearchResult result0 = docSearcher.executeQuery(query, 5, null);
-		docSearcher.printReturnedDocs(result0);
-		SearchResult result1 = docSearcher.executeQuery(query, 5, result0);
-		docSearcher.printReturnedDocs(result1);
+	public void searchFor(String queryStr, int numPages) {
+		Query query = docSearcher.parseQuery(queryStr);
+		SearchResult searchResult = docSearcher.executeQuery(query, numPages, null);
+		currentQueryInfo = new QueryInfo(queryStr, query, searchResult);
+		pendingDocHits = docSearcher.getDocuments(searchResult);
+	}
+	
+	public ArrayList<Document> getPendingDocHits() {
+		if (currentQueryInfo == null)
+			return null;
+		queryInfos.push(currentQueryInfo);
+		currentQueryInfo = null;
+		ArrayList<Document> tmpDocs = pendingDocHits;
+		pendingDocHits = null;
+		return tmpDocs;
+	}
+	
+	public void searchAfter(int numPages) {
+		if (currentQueryInfo == null)
+			return;
+		SearchResult searchResult = docSearcher.executeQuery(
+				currentQueryInfo.getQuery(),
+				numPages,
+				currentQueryInfo.getSearchResult()
+		);
+		pendingDocHits = docSearcher.getDocuments(searchResult);
 	}
 	
 	public void createIndex() {
