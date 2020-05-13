@@ -37,5 +37,8 @@ public class QueryInfo {
 		this.queryStr = queryStr;
 	}
 	
+	public void appendToSearchResult(SearchResult searchResult) {
+		this.searchResult.getHits().addAll(searchResult.getHits());
+	}
 	
 }

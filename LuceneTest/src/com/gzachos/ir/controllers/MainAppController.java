@@ -56,7 +56,7 @@ public class MainAppController implements Initializable {
 			stage.initModality(Modality.APPLICATION_MODAL);
 			stage.setMinWidth(1280);
 			stage.setMinHeight(720); // TODO verify value
-			// stage.setOnCloseRequest(e -> initEditorArea());
+			stage.setOnCloseRequest(e -> searchEngine.clearCurrentQuery());
 			stage.setTitle("WikiSearch 0.1.0 BETA");
 			stage.getIcons().add(
 					new Image(MainAppController.class.getResourceAsStream("../res/cse-logo.png"))

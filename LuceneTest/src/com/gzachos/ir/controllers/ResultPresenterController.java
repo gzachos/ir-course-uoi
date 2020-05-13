@@ -12,6 +12,8 @@ import com.gzachos.ir.gui.IfaceDoc;
 import com.gzachos.ir.gui.MainApp;
 
 import javafx.application.HostServices;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -20,27 +22,49 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.Separator;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 public class ResultPresenterController implements Initializable {
 	private SearchEngine searchEngine;
+	private int totalNumPages;
+	private int savedPageIndex;
+	private ArrayList<ArrayList<IfaceDoc>> totalIfaceDocs;
+	
 	@FXML private Pagination pagination;
 	
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		searchEngine = SearchEngine.getInstance();
-		pagination.setCurrentPageIndex(0);
-		pagination.setMaxPageIndicatorCount(10);
-		populatePages();
+		savedPageIndex = 0;
+		// pagination.setCurrentPageIndex(currentPageIndex);
+		pagination.setMaxPageIndicatorCount(5);
+		if (getSearchResults(false))
+			populatePages();
+		
+		pagination.currentPageIndexProperty().addListener(new ChangeListener<Number>() {
+			@Override
+			public void changed(ObservableValue<? extends Number> arg0, Number oldPageNum, Number newPageNum) {
+				if (newPageNum.intValue() == totalNumPages-2) {
+					if (getSearchResults(true)) {
+						savedPageIndex = pagination.getCurrentPageIndex();
+						populatePages();
+					}
+				}
+			}
+		});
 	}
-	
-	public void populatePages() {
+		
+	private boolean getSearchResults(boolean isPartialSearch) {
 		ArrayList<Document> docs;
-		do {
-			docs = searchEngine.getPendingDocHits();
-		} while (docs == null);
+		if (isPartialSearch) {
+			if ((docs = searchEngine.searchAfter(5)) == null)
+				return false; // No need to populate pages
+		} else {
+			do {
+				docs = searchEngine.getPendingDocHits();
+			} while (docs == null);
+		}
 		ArrayList<ArrayList<IfaceDoc>> ifaceDocs = new ArrayList<ArrayList<IfaceDoc>>();
 
 		int pageNum = 0;
@@ -52,12 +76,26 @@ public class ResultPresenterController implements Initializable {
 			Document doc = docs.get(i);
 			ifaceDocs.get(pageNum-1).add(new IfaceDoc(doc.get("url"), doc.get("title"), doc.get("summary")));
 		}
-		int numPages = (pageNum > 0) ? pageNum : 1;
-		pagination.setPageCount(numPages);
+		int numPages = pageNum;
+		if (isPartialSearch) {
+			if (numPages == 0)
+				return false; // No need to populate pages
+			totalIfaceDocs.addAll(ifaceDocs);
+			totalNumPages += numPages;
+		} else {
+			totalIfaceDocs = ifaceDocs;
+			totalNumPages = numPages;
+		}
+		return true;
+	}
+	
+	public void populatePages() {
 		pagination.setPageFactory(pageIndex -> {
+			if (pageIndex >= totalIfaceDocs.size())
+				return null;
 			VBox vbox = new VBox();
-			if (pageIndex < ifaceDocs.size()) {
-				for (IfaceDoc idoc : ifaceDocs.get(pageIndex)) {
+			if (pageIndex < totalIfaceDocs.size()) {
+				for (IfaceDoc idoc : totalIfaceDocs.get(pageIndex)) {
 					vbox.getChildren().addAll(idoc.getTitle());
 					Hyperlink url = idoc.getUrl();
 					url.setOnAction(new EventHandler<ActionEvent>() {
@@ -75,13 +113,8 @@ public class ResultPresenterController implements Initializable {
 			}
 			return vbox;
 		});
-		
-		pagination.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(MouseEvent event) {
-				System.out.println(event.toString());
-			}
-		});
+		pagination.setPageCount((totalNumPages == 0) ? 1 : totalNumPages);
+		pagination.setCurrentPageIndex(savedPageIndex);
 	}
 	
 	

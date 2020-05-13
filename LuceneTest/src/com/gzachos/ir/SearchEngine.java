@@ -20,7 +20,7 @@ public class SearchEngine {
 	private DocumentSearcher docSearcher;
 	private Stack<QueryInfo> queryInfos;
 	private QueryInfo currentQueryInfo;
-	ArrayList<Document> pendingDocHits;
+	private ArrayList<Document> pendingDocHits;
 	
 	private SearchEngine() {
 		 fileIndexer = new FileIndexer(Config.INDEX_PATH);
@@ -45,24 +45,29 @@ public class SearchEngine {
 	}
 	
 	public ArrayList<Document> getPendingDocHits() {
-		if (currentQueryInfo == null)
+		if (currentQueryInfo == null || pendingDocHits == null)
 			return null;
-		queryInfos.push(currentQueryInfo);
-		currentQueryInfo = null;
 		ArrayList<Document> tmpDocs = pendingDocHits;
 		pendingDocHits = null;
 		return tmpDocs;
 	}
 	
-	public void searchAfter(int numPages) {
+	public void clearCurrentQuery() {
+		queryInfos.push(currentQueryInfo);
+		currentQueryInfo = null;
+	}
+	
+	public ArrayList<Document> searchAfter(int numPages) {
 		if (currentQueryInfo == null)
-			return;
+			return null;
 		SearchResult searchResult = docSearcher.executeQuery(
 				currentQueryInfo.getQuery(),
 				numPages,
 				currentQueryInfo.getSearchResult()
 		);
-		pendingDocHits = docSearcher.getDocuments(searchResult);
+		// In order to keep lastReturnedDoc up-to-date.
+		currentQueryInfo.appendToSearchResult(searchResult);
+		return docSearcher.getDocuments(searchResult);
 	}
 	
 	public void createIndex() {
