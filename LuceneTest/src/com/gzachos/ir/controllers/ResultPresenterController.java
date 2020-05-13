@@ -18,9 +18,11 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Pagination;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -34,9 +36,9 @@ public class ResultPresenterController implements Initializable {
 	
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
+		// TODO update title
 		searchEngine = SearchEngine.getInstance();
 		savedPageIndex = 0;
-		// pagination.setCurrentPageIndex(currentPageIndex);
 		pagination.setMaxPageIndicatorCount(5);
 		if (getSearchResults(false))
 			populatePages();
@@ -88,7 +90,10 @@ public class ResultPresenterController implements Initializable {
 	
 	public void populatePages() {
 		pagination.setPageFactory(pageIndex -> {
+			ScrollPane scrollPane = new ScrollPane();
 			VBox vbox = new VBox();
+			vbox.setPadding(new Insets(10, 25 ,25, 25));
+			scrollPane.setContent(vbox);
 			if (pageIndex < totalIfaceDocs.size()) {
 				for (IfaceDoc idoc : totalIfaceDocs.get(pageIndex)) {
 					vbox.getChildren().addAll(idoc.getTitle());
@@ -108,7 +113,7 @@ public class ResultPresenterController implements Initializable {
 			} else if (pageIndex >= totalIfaceDocs.size()) {
 				return null;
 			}
-			return vbox;
+			return scrollPane;
 		});
 		int totalNumPages = totalIfaceDocs.size();
 		pagination.setPageCount((totalNumPages == 0) ? 1 : totalNumPages);
