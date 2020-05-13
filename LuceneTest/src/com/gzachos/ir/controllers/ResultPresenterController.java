@@ -27,9 +27,8 @@ import javafx.scene.text.Text;
 
 public class ResultPresenterController implements Initializable {
 	private SearchEngine searchEngine;
-	private int totalNumPages;
-	private int savedPageIndex;
 	private ArrayList<ArrayList<IfaceDoc>> totalIfaceDocs;
+	private int savedPageIndex;
 	
 	@FXML private Pagination pagination;
 	
@@ -45,7 +44,7 @@ public class ResultPresenterController implements Initializable {
 		pagination.currentPageIndexProperty().addListener(new ChangeListener<Number>() {
 			@Override
 			public void changed(ObservableValue<? extends Number> arg0, Number oldPageNum, Number newPageNum) {
-				if (newPageNum.intValue() == totalNumPages-2) {
+				if (newPageNum.intValue() == totalIfaceDocs.size()-1) {
 					if (getSearchResults(true)) {
 						savedPageIndex = pagination.getCurrentPageIndex();
 						populatePages();
@@ -81,18 +80,14 @@ public class ResultPresenterController implements Initializable {
 			if (numPages == 0)
 				return false; // No need to populate pages
 			totalIfaceDocs.addAll(ifaceDocs);
-			totalNumPages += numPages;
 		} else {
 			totalIfaceDocs = ifaceDocs;
-			totalNumPages = numPages;
 		}
 		return true;
 	}
 	
 	public void populatePages() {
 		pagination.setPageFactory(pageIndex -> {
-			if (pageIndex >= totalIfaceDocs.size())
-				return null;
 			VBox vbox = new VBox();
 			if (pageIndex < totalIfaceDocs.size()) {
 				for (IfaceDoc idoc : totalIfaceDocs.get(pageIndex)) {
@@ -108,11 +103,14 @@ public class ResultPresenterController implements Initializable {
 					vbox.getChildren().addAll(idoc.getSummary());
 					vbox.getChildren().addAll(new Separator(Orientation.HORIZONTAL));
 				}
-			} else if (pageIndex == 0) {
+			} else if (pageIndex == 0) { // Not a partial search
 				vbox.getChildren().add(new Text("No results found!"));
+			} else if (pageIndex >= totalIfaceDocs.size()) {
+				return null;
 			}
 			return vbox;
 		});
+		int totalNumPages = totalIfaceDocs.size();
 		pagination.setPageCount((totalNumPages == 0) ? 1 : totalNumPages);
 		pagination.setCurrentPageIndex(savedPageIndex);
 	}
