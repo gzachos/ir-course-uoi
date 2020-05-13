@@ -35,7 +35,7 @@ public class SearchResult {
 	
 	public String getStatsStr() {
 		if (getNumHits() == 0)
-			return "Found 0 results";
+			return "No results found!";
 		String relationStr = (relation == Relation.GREATER_THAN_OR_EQUAL_TO) ? "More than" : "About";
 		return relationStr + " " + numTotalHits + " results (" + searchTimeSec + " seconds)\n";
 	}

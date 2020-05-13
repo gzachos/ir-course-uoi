@@ -52,6 +52,12 @@ public class SearchEngine {
 		return tmpDocs;
 	}
 	
+	public String getCurrentQueryStats() {
+		if (currentQueryInfo == null)
+			return "";
+		return currentQueryInfo.getSearchResult().getStatsStr();
+	}
+	
 	public void clearCurrentQuery() {
 		queryInfos.push(currentQueryInfo);
 		currentQueryInfo = null;

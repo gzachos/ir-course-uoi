@@ -21,11 +21,11 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 
 public class ResultPresenterController implements Initializable {
 	private SearchEngine searchEngine;
@@ -94,6 +94,18 @@ public class ResultPresenterController implements Initializable {
 			VBox vbox = new VBox();
 			vbox.setPadding(new Insets(10, 25 ,25, 25));
 			scrollPane.setContent(vbox);
+			Label statsLabel = new Label();
+			if (pageIndex == 0) {
+				String statsString = searchEngine.getCurrentQueryStats();
+				statsLabel.setText(statsString);
+				statsLabel.setPadding(new Insets(10, 10, 15, 10));
+				statsLabel.setStyle("-fx-font-size: 13");
+				vbox.getChildren().add(statsLabel);
+			}
+			if (totalIfaceDocs.size() == 0) {
+				statsLabel.setStyle("-fx-font-weight: bold");
+				return vbox;
+			}
 			if (pageIndex < totalIfaceDocs.size()) {
 				for (IfaceDoc idoc : totalIfaceDocs.get(pageIndex)) {
 					vbox.getChildren().addAll(idoc.getTitle());
@@ -108,9 +120,7 @@ public class ResultPresenterController implements Initializable {
 					vbox.getChildren().addAll(idoc.getSummary());
 					vbox.getChildren().addAll(new Separator(Orientation.HORIZONTAL));
 				}
-			} else if (pageIndex == 0) { // Not a partial search
-				vbox.getChildren().add(new Text("No results found!"));
-			} else if (pageIndex >= totalIfaceDocs.size()) {
+			} else {
 				return null;
 			}
 			return scrollPane;
