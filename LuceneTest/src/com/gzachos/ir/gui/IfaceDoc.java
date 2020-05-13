@@ -13,6 +13,7 @@ public class IfaceDoc {
 		url = new Hyperlink(urlStr);
 		title = new Label(titleStr);
 		summary = new Text(summaryStr);
+		title.setStyle("-fx-font-weight: bold");
 	}
 	
 	public Hyperlink getUrl() {
