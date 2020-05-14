@@ -88,4 +88,8 @@ public class SearchEngine {
 		}
 		fileIndexer.createIndex(overwriteIndex);
 	}
+	
+	public void closeDocumentSearcher() {
+		docSearcher.close();
+	}
 }

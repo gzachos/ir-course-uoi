@@ -2,6 +2,8 @@ package com.gzachos.ir.gui;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.gzachos.ir.SearchEngine;
+
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.fxml.FXMLLoader;
@@ -18,6 +20,7 @@ public class MainApp extends Application {
 	private Stage stage;
 	private String programName = "WikiSearch 0.1.0 BETA";
 	private HostServices hostServices;
+	private SearchEngine searchEngine;
 	
 	public static void main(String[] args) {
 		launch(args);
@@ -26,6 +29,7 @@ public class MainApp extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		try {
+			searchEngine = SearchEngine.getInstance();
 			this.stage = primaryStage;
 			Parent root = FXMLLoader.load(getClass().getResource("MainApp.fxml"));
 			Scene scene = new Scene(root);
@@ -63,8 +67,10 @@ public class MainApp extends Application {
 				;
 		});
 		
-		if (exitConfirmed.get() == true)
+		if (exitConfirmed.get() == true) {
+			searchEngine.closeDocumentSearcher();
 			stage.close();
+		}
 	}
 	
 	public HostServices getServices() {

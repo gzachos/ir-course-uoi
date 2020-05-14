@@ -24,13 +24,14 @@ import org.apache.lucene.store.FSDirectory;
 import com.gzachos.ir.Globals;
 
 public class DocumentSearcher {
+	IndexReader indexReader;
 	IndexSearcher indexSearcher;
 	MultiFieldQueryParser queryParser;
 	
 	public DocumentSearcher(String indexDir) {
 		try {
 			Path indexDirPath = Paths.get(indexDir);
-			IndexReader indexReader = DirectoryReader.open(FSDirectory.open(indexDirPath));
+			indexReader = DirectoryReader.open(FSDirectory.open(indexDirPath));
 			indexSearcher = new IndexSearcher(indexReader);
 			Analyzer standardAnalyzer = new StandardAnalyzer();
 			queryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, standardAnalyzer, Globals.QUERY_BOOSTS);
@@ -39,6 +40,14 @@ public class DocumentSearcher {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void close() {
+		try {
+			indexReader.close();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

@@ -99,7 +99,6 @@ public class MainAppController implements Initializable {
 	
 	@FXML
 	private void exitNormally() {
-		System.out.println("Quit");
 		Stage stage = (Stage) mainAppVBox.getScene().getWindow();
 		stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
 	}
