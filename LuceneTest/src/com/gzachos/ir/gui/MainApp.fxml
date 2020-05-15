@@ -24,7 +24,7 @@
               <menus>
                 <Menu text="_Options">
                   <items>
-                        <MenuItem onAction="#advancedSearch" text="_Advanced Search" />
+                        <MenuItem onAction="#invokeAdvancedSearch" text="_Advanced Search" />
                     <MenuItem onAction="#exitNormally" text="_Exit" />
                   </items>
                 </Menu>

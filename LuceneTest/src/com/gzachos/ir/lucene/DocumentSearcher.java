@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -26,16 +27,20 @@ import com.gzachos.ir.Globals;
 public class DocumentSearcher {
 	IndexReader indexReader;
 	IndexSearcher indexSearcher;
-	MultiFieldQueryParser queryParser;
+	Analyzer standardAnalyzer;
+	MultiFieldQueryParser defaultQueryParser, currentQueryParser = null;
 	
 	public DocumentSearcher(String indexDir) {
 		try {
 			Path indexDirPath = Paths.get(indexDir);
 			indexReader = DirectoryReader.open(FSDirectory.open(indexDirPath));
 			indexSearcher = new IndexSearcher(indexReader);
-			Analyzer standardAnalyzer = new StandardAnalyzer();
-			queryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, standardAnalyzer, Globals.QUERY_BOOSTS);
-			queryParser.setDefaultOperator(Operator.AND);
+			standardAnalyzer = new StandardAnalyzer();
+			defaultQueryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, standardAnalyzer, Globals.QUERY_BOOSTS);
+			defaultQueryParser.setDefaultOperator(Operator.AND);
+			currentQueryParser = defaultQueryParser;
+		//	currentQueryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, standardAnalyzer);
+		//	currentQueryParser.setDefaultOperator(Operator.AND);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -60,13 +65,20 @@ public class DocumentSearcher {
 			return null;
 		
 		try {
-			Query query = queryParser.parse(queryStr);
+			Query query = currentQueryParser.parse(queryStr);
 			System.out.println("Searching for: \"" + query.toString() + "\"");
 			return query;
 		} catch (ParseException pe) {
 			// System.err.println("Cannot parse query!");
 			return null;
 		}
+	}
+	
+	public Query parseAdvancedQuery(String queryStr, String fields[], Map<String, Float> boosts) {
+		currentQueryParser = new MultiFieldQueryParser(fields, standardAnalyzer, boosts);
+		Query query = parseQuery(queryStr);
+		currentQueryParser = defaultQueryParser;
+		return query;
 	}
 	
 	public SearchResult executeQuery(Query query, int numPages, SearchResult prevResults) {
@@ -173,9 +185,9 @@ public class DocumentSearcher {
 				e.printStackTrace();
 				return;
 			}
-			String url = doc.get("url");
-			String title = doc.get("title");
-			String summary = doc.get("summary");
+			String url = doc.get(Globals.URL_FIELD_NAME);
+			String title = doc.get(Globals.TITLE_FIELD_NAME);
+			String summary = doc.get(Globals.SUMMARY_FIELD_NAME);
 			
 			if (url != null) {
 				if (i % Globals.HITS_PER_PAGE == 0)

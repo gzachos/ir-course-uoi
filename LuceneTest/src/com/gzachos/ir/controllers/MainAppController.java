@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 import com.gzachos.ir.SearchEngine;
+import com.gzachos.ir.gui.MainApp;
 
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -46,7 +47,7 @@ public class MainAppController implements Initializable {
 		});
 	}
 	
-	private void invokeResultPresenter() {
+	public void invokeResultPresenter() {
 		try{
 			FXMLLoader fxmlLoader = new FXMLLoader(
 					getClass().getResource("../gui/ResultPresenter.fxml")
@@ -57,7 +58,7 @@ public class MainAppController implements Initializable {
 			stage.setMinWidth(1280);
 			stage.setMinHeight(720); // TODO verify value
 			stage.setOnCloseRequest(e -> searchEngine.clearCurrentQuery());
-			stage.setTitle("WikiSearch 0.1.0 BETA");
+			stage.setTitle(MainApp.getAppNameAndVersion());
 			stage.getIcons().add(
 					new Image(MainAppController.class.getResourceAsStream("../res/cse-logo.png"))
 			);
@@ -69,7 +70,7 @@ public class MainAppController implements Initializable {
 		}
 	}
 	
-	public static MainAppController getInstance() {
+	private static MainAppController getInstance() {
 		if (mainAppController == null)
 			mainAppController = new MainAppController();
 		return mainAppController;
@@ -77,8 +78,8 @@ public class MainAppController implements Initializable {
 	
 	@FXML
 	private void showAboutApp() {
-		Alert info = new Alert(AlertType.INFORMATION, "WikiSearch"
-				+ "\nVersion: 0.1.0\n" + "License: GPLv2\n\n"
+		Alert info = new Alert(AlertType.INFORMATION, MainApp.getAppName()
+				+ "\n Version: " + MainApp.getAppVersion() + "\n" + "License: GPLv2\n\n"
 				+ "Developed by George Z. Zachos and\n"
 				+ "Andrew Konstantinidis for the Information\n"
 				+ "Retrieval course @cse.uoi.gr\n"
@@ -88,13 +89,31 @@ public class MainAppController implements Initializable {
 		stage.getIcons().add(
 				new Image(MainAppController.class.getResourceAsStream("../res/cse-logo.png"))
 		);
-		info.setHeaderText("About WikiSearch");
+		info.setHeaderText("About " + MainApp.getAppName());
 		info.showAndWait();
 	}
 	
 	@FXML
-	private void advancedSearch() {
-		System.out.println("Advanced Search");
+	private void invokeAdvancedSearch() {
+		try{
+			FXMLLoader fxmlLoader = new FXMLLoader(
+					getClass().getResource("../gui/AdvancedSearch.fxml")
+			);
+			Parent root = (Parent) fxmlLoader.load();
+			Stage stage = new Stage();
+			stage.initModality(Modality.APPLICATION_MODAL);
+			stage.setResizable(false);
+			stage.setOnCloseRequest(e -> searchEngine.clearCurrentQuery());
+			stage.setTitle(MainApp.getAppNameAndVersion());
+			stage.getIcons().add(
+					new Image(MainAppController.class.getResourceAsStream("../res/cse-logo.png"))
+			);
+			stage.setScene(new Scene(root));
+			stage.show();
+			root.requestFocus();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@FXML

@@ -18,7 +18,8 @@ import javafx.stage.Stage;
 public class MainApp extends Application {
 	private static MainApp instance = new MainApp();
 	private Stage stage;
-	private String programName = "WikiSearch 0.1.0 BETA";
+	private static String appName = "WikiSearch";
+	private static String appVersion = "0.4.0 BETA";
 	private HostServices hostServices;
 	private SearchEngine searchEngine;
 	
@@ -33,7 +34,7 @@ public class MainApp extends Application {
 			this.stage = primaryStage;
 			Parent root = FXMLLoader.load(getClass().getResource("MainApp.fxml"));
 			Scene scene = new Scene(root);
-			primaryStage.setTitle(programName);
+			primaryStage.setTitle(getAppNameAndVersion());
 			//primaryStage.setResizable(false);
 			primaryStage.setMinWidth(1280);
 			primaryStage.setMinHeight(720);
@@ -55,7 +56,7 @@ public class MainApp extends Application {
 	private void exitNormally(Stage stage) {
 		AtomicBoolean exitConfirmed = new AtomicBoolean(false);
 		Alert alert = new Alert(AlertType.CONFIRMATION,
-				"Are you sure you want to exit WikiSearch?");
+				"Are you sure you want to exit " + appName + "?");
 		Stage alerstage = (Stage) alert.getDialogPane().getScene().getWindow();
 		alerstage.getIcons().add(
 				new Image(MainApp.class.getResourceAsStream("../res/cse-logo.png"))
@@ -71,6 +72,18 @@ public class MainApp extends Application {
 			searchEngine.closeDocumentSearcher();
 			stage.close();
 		}
+	}
+	
+	public static String getAppNameAndVersion() {
+		return appName + " " + appVersion;
+	}
+	
+	public static String getAppName() {
+		return appName;
+	}
+	
+	public static String getAppVersion() {
+		return appVersion;
 	}
 	
 	public HostServices getServices() {

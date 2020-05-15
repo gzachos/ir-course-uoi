@@ -1,6 +1,7 @@
 package com.gzachos.ir;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
 
@@ -39,6 +40,13 @@ public class SearchEngine {
 	
 	public void searchFor(String queryStr, int numPages) {
 		Query query = docSearcher.parseQuery(queryStr);
+		SearchResult searchResult = docSearcher.executeQuery(query, numPages, null);
+		currentQueryInfo = new QueryInfo(queryStr, query, searchResult);
+		pendingDocHits = docSearcher.getDocuments(searchResult);
+	}
+	
+	public void searchForAdvanced(String queryStr, int numPages, String fields[], Map<String, Float> boosts) {
+		Query query = docSearcher.parseAdvancedQuery(queryStr, fields, boosts);
 		SearchResult searchResult = docSearcher.executeQuery(query, numPages, null);
 		currentQueryInfo = new QueryInfo(queryStr, query, searchResult);
 		pendingDocHits = docSearcher.getDocuments(searchResult);

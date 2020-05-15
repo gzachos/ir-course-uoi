@@ -19,6 +19,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 import com.gzachos.ir.Config;
+import com.gzachos.ir.Globals;
 
 
 public class FileIndexer {
@@ -168,17 +169,17 @@ public class FileIndexer {
 		}
 		br.close();
 		
-		doc.add(new StoredField("url", url));
-		doc.add(new TextField("title", title, Field.Store.YES));
-		doc.add(new TextField("content", contentStr, Field.Store.NO));
-		doc.add(new StoredField("summary", summaryStr));
+		doc.add(new StoredField(Globals.URL_FIELD_NAME, url));
+		doc.add(new TextField(Globals.TITLE_FIELD_NAME, title, Field.Store.YES));
+		doc.add(new TextField(Globals.CONTENT_FIELD_NAME, contentStr, Field.Store.NO));
+		doc.add(new StoredField(Globals.SUMMARY_FIELD_NAME, summaryStr));
 		
 		if (mediaStr.length() > 0)
-			doc.add(new TextField("multimedia", mediaStr, Field.Store.NO));
+			doc.add(new TextField(Globals.MULTIMEDIA_FIELD_NAME, mediaStr, Field.Store.NO));
 		if (quoteStr.length() > 0)
-			doc.add(new TextField("quotes", quoteStr, Field.Store.NO));
+			doc.add(new TextField(Globals.QUOTES_FIELD_NAME, quoteStr, Field.Store.NO));
 		if (referencesStr.length() > 0)
-			doc.add(new TextField("references", referencesStr, Field.Store.NO));
+			doc.add(new TextField(Globals.REFERENCES_FIELD_NAME, referencesStr, Field.Store.NO));
 		
 		return doc;
 	}

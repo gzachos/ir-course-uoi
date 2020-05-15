@@ -75,7 +75,11 @@ public class ResultPresenterController implements Initializable {
 				pageNum++;
 			}
 			Document doc = docs.get(i);
-			ifaceDocs.get(pageNum-1).add(new IfaceDoc(doc.get("url"), doc.get("title"), doc.get("summary")));
+			ifaceDocs.get(pageNum-1).add(new IfaceDoc(
+					doc.get(Globals.URL_FIELD_NAME),
+					doc.get(Globals.TITLE_FIELD_NAME),
+					doc.get(Globals.SUMMARY_FIELD_NAME))
+			);
 		}
 		int numPages = pageNum;
 		if (isPartialSearch) {

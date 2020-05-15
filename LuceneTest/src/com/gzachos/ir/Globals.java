@@ -3,7 +3,12 @@ package com.gzachos.ir;
 import java.util.Map;
 
 public class Globals {
-	public static final String[] DOCUMENT_FIELDS = {"title", "content", "multimedia", "quotes", "references"};
+	
+	public static final String TITLE_FIELD_NAME = "title", CONTENT_FIELD_NAME = "content",
+			MULTIMEDIA_FIELD_NAME = "multimedia", QUOTES_FIELD_NAME = "quotes",
+			REFERENCES_FIELD_NAME = "references", URL_FIELD_NAME = "url", SUMMARY_FIELD_NAME = "summary";
+	public static final String[] DOCUMENT_FIELDS = {TITLE_FIELD_NAME, CONTENT_FIELD_NAME, MULTIMEDIA_FIELD_NAME,
+			QUOTES_FIELD_NAME, REFERENCES_FIELD_NAME};
 	public static final int HITS_PER_PAGE = 10;
 	public static final Map<String, Float> QUERY_BOOSTS = Map.of(
 			"title",      10.0f,
@@ -12,12 +17,19 @@ public class Globals {
 			"quotes",      1.0f,
 			"references",  0.1f
 	);
-//	public static final Map<String, Float> QUERY_BOOSTS = Map.of(
-//	"title",       1.0f,
-//	"content",     1.0f,
-//	"multimedia",  1.0f,
-//	"quotes",      1.0f,
-//	"references",  1.0f
-//);
+	public static final Map<String, Float> DEFAULT_QUERY_BOOSTS = Map.of(
+			"title",      10.0f,
+			"content",     1.0f,
+			"multimedia",  1.0f,
+			"quotes",      1.0f,
+			"references",  1.0f
+	);
+	public static final Map<String, Float> IDENTITY_QUERY_BOOSTS = Map.of(
+			"title",       1.0f,
+			"content",     1.0f,
+			"multimedia",  1.0f,
+			"quotes",      1.0f,
+			"references",  1.0f
+	);
 }
 
