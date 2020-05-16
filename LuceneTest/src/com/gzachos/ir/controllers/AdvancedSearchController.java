@@ -2,6 +2,7 @@ package com.gzachos.ir.controllers;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.ResourceBundle;
 
 import com.gzachos.ir.Globals;
@@ -39,13 +40,41 @@ public class AdvancedSearchController implements Initializable {
 	}
 	
 	private void setUpChoiceBoxes() {
-		String options[] = {"Anytime", "Today", "This week", "This month", "This year"};
+		String options[] = {"Anytime", "Last 24h", "Last week", "Last month", "Last year"};
 		updateChoiceBox.getItems().addAll(options);
 		creationChoiceBox.getItems().addAll(options);
 		updateChoiceBox.getSelectionModel().select("Anytime");
 		creationChoiceBox.getSelectionModel().select("Anytime");
 		updateChoiceBox.setDisable(true);
 		creationChoiceBox.setDisable(true);
+	}
+	
+	private String getRangeQueryStr(ChoiceBox cbox) {
+		int selectedIndex = cbox.getSelectionModel().getSelectedIndex();
+		long toDate = (new Date()).getTime() / 1000; // Time since epoch GMT
+		long fromDate;
+		long secondsInOneDay = 86400;
+		switch (selectedIndex) {
+			case 1:
+				fromDate = toDate - secondsInOneDay;
+				break;
+			case 2:
+				fromDate = toDate - secondsInOneDay * 7;
+				break;
+			case 3:
+				fromDate = toDate - secondsInOneDay * 30;
+				break;
+			case 4:
+				fromDate = toDate - secondsInOneDay * 365;
+				break;
+			default:
+				return null;
+		}
+		String fieldName = (cbox == updateChoiceBox) ?
+				      Globals.UPDATE_TIME_FIELD_NAME :
+				  Globals.PUBLICATION_TIME_FIELD_NAME;
+		String rangeQueryStr = fieldName + ":[" + fromDate + " TO " + toDate + "]";
+		return rangeQueryStr;
 	}
 	
 	@FXML
@@ -104,6 +133,12 @@ public class AdvancedSearchController implements Initializable {
 		tmpStr = notTextField.getText().strip();
 		if (tmpStr.length() > 0)
 			queryStr += " -" + tmpStr.replaceAll(" +", " -");
+//		tmpStr = getRangeQueryStr(updateChoiceBox);
+//		if (tmpStr != null)
+//			queryStr += " +" + tmpStr;
+//		tmpStr = getRangeQueryStr(creationChoiceBox);
+//		if (tmpStr != null)
+//			queryStr += " +" + tmpStr;
 		if (queryStr.strip().length() == 0)
 			return null;
 		return queryStr;

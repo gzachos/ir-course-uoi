@@ -6,7 +6,8 @@ public class Globals {
 	
 	public static final String TITLE_FIELD_NAME = "title", CONTENT_FIELD_NAME = "content",
 			MULTIMEDIA_FIELD_NAME = "multimedia", QUOTES_FIELD_NAME = "quotes",
-			REFERENCES_FIELD_NAME = "references", URL_FIELD_NAME = "url", SUMMARY_FIELD_NAME = "summary";
+			REFERENCES_FIELD_NAME = "references", URL_FIELD_NAME = "url", SUMMARY_FIELD_NAME = "summary",
+			PUBLICATION_TIME_FIELD_NAME = "published", UPDATE_TIME_FIELD_NAME="updated";
 	public static final String[] DOCUMENT_FIELDS = {TITLE_FIELD_NAME, CONTENT_FIELD_NAME, MULTIMEDIA_FIELD_NAME,
 			QUOTES_FIELD_NAME, REFERENCES_FIELD_NAME};
 	public static final int HITS_PER_PAGE = 10;
