@@ -38,18 +38,29 @@ public class SearchEngine {
 		return instance;
 	}
 	
-	public void searchFor(String queryStr, int numPages) {
+	public String searchFor(String queryStr, int numPages) {
 		Query query = docSearcher.parseQuery(queryStr);
+		if (query == null) 
+			return Globals.QUERY_PARSE_ERROR;
 		SearchResult searchResult = docSearcher.executeQuery(query, numPages, null);
+		if (searchResult == null)
+			return Globals.QUERY_EXEC_ERROR;
 		currentQueryInfo = new QueryInfo(queryStr, query, searchResult);
 		pendingDocHits = docSearcher.getDocuments(searchResult);
+		return null;
 	}
 	
-	public void searchForAdvanced(String queryStr, int numPages, String fields[], Map<String, Float> boosts) {
+	public String searchForAdvanced(String queryStr, int numPages, String fields[], Map<String, Float> boosts) {
 		Query query = docSearcher.parseAdvancedQuery(queryStr, fields, boosts);
+		if (query == null) 
+			return Globals.QUERY_PARSE_ERROR;
+		System.out.println("query: " + query); // TODO remove
 		SearchResult searchResult = docSearcher.executeQuery(query, numPages, null);
+		if (searchResult == null)
+			return Globals.QUERY_EXEC_ERROR;
 		currentQueryInfo = new QueryInfo(queryStr, query, searchResult);
 		pendingDocHits = docSearcher.getDocuments(searchResult);
+		return null;
 	}
 	
 	public ArrayList<Document> getPendingDocHits() {

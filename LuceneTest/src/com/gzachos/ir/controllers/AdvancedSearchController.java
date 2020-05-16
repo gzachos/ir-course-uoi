@@ -23,6 +23,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 public class AdvancedSearchController implements Initializable {
 	private SearchEngine searchEngine;
@@ -86,8 +87,11 @@ public class AdvancedSearchController implements Initializable {
 			return;
 		}
 		String fields[] = getFieldsToSearch();
-		searchEngine.searchForAdvanced(queryStr, 5, fields, Globals.DEFAULT_QUERY_BOOSTS);
-		invokeResultPresenter();
+		String res = searchEngine.searchForAdvanced(queryStr, 5, fields, Globals.DEFAULT_QUERY_BOOSTS);
+		if (res != null)
+			warnUser(res, "Search Error");
+		else
+			invokeResultPresenter();
 	}
 	
 	public void invokeResultPresenter() {
@@ -115,7 +119,8 @@ public class AdvancedSearchController implements Initializable {
 	
 	@FXML
 	private void cancelAdvancedSearch() {
-		System.out.println("Cancel");
+		Stage stage = (Stage) andTextField.getScene().getWindow();
+		stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
 	}
 	
 	private String generateQueryStr() {
@@ -170,4 +175,5 @@ public class AdvancedSearchController implements Initializable {
 		warn.setHeaderText(headerText);
 		warn.showAndWait();
 	}
+
 }

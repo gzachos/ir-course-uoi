@@ -32,5 +32,7 @@ public class Globals {
 			"quotes",      1.0f,
 			"references",  1.0f
 	);
+	public static final String QUERY_PARSE_ERROR = "Error parsing query!",
+			QUERY_EXEC_ERROR = "Error executing query!";
 }
 
