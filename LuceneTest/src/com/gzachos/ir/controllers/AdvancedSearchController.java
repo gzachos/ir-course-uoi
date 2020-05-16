@@ -13,6 +13,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
@@ -33,14 +35,27 @@ public class AdvancedSearchController implements Initializable {
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
 		searchEngine = SearchEngine.getInstance();
+		setUpChoiceBoxes();
+	}
+	
+	private void setUpChoiceBoxes() {
+		String options[] = {"Anytime", "Today", "This week", "This month", "This year"};
+		updateChoiceBox.getItems().addAll(options);
+		creationChoiceBox.getItems().addAll(options);
+		updateChoiceBox.getSelectionModel().select("Anytime");
+		creationChoiceBox.getSelectionModel().select("Anytime");
+		updateChoiceBox.setDisable(true);
+		creationChoiceBox.setDisable(true);
 	}
 	
 	@FXML
 	private void conductAdvancedSearch() {
 		String queryStr = generateQueryStr();
 		System.out.println(queryStr);
-		if (queryStr == null)
+		if (queryStr == null) {
+			warnUser("You can't leave all text fields empty!", "Missing User Input");
 			return;
+		}
 		String fields[] = getFieldsToSearch();
 		searchEngine.searchForAdvanced(queryStr, 5, fields, Globals.DEFAULT_QUERY_BOOSTS);
 		invokeResultPresenter();
@@ -109,5 +124,15 @@ public class AdvancedSearchController implements Initializable {
 			fields.add(Globals.REFERENCES_FIELD_NAME);
 		String[] fs = fields.toArray(new String[0]);
 		return fs;
+	}
+	
+	private void warnUser(String warningText, String headerText) {
+		Alert warn = new Alert(AlertType.WARNING, warningText);
+		Stage warnstage = (Stage) warn.getDialogPane().getScene().getWindow();
+		warnstage.getIcons().add(
+				new Image(getClass().getResourceAsStream("../res/cse-logo.png"))
+		);
+		warn.setHeaderText(headerText);
+		warn.showAndWait();
 	}
 }

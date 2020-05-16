@@ -38,8 +38,10 @@ public class MainAppController implements Initializable {
 			public void handle(KeyEvent event) {
 				if (event.getCharacter().equals("\r")) {
 					String queryStr = mainSearchArea.getText();
-					if (queryStr.strip().length() == 0)
+					if (queryStr.strip().length() == 0) {
+						warnUser("Search for at least one term!", "Missing User Input");
 						return;
+					}
 					searchEngine.searchFor(queryStr, 5);
 					invokeResultPresenter();
 				}
@@ -79,7 +81,7 @@ public class MainAppController implements Initializable {
 	@FXML
 	private void showAboutApp() {
 		Alert info = new Alert(AlertType.INFORMATION, MainApp.getAppName()
-				+ "\n Version: " + MainApp.getAppVersion() + "\n" + "License: GPLv2\n\n"
+				+ "\nVersion: " + MainApp.getAppVersion() + "\n" + "License: GPLv2\n\n"
 				+ "Developed by George Z. Zachos and\n"
 				+ "Andrew Konstantinidis for the Information\n"
 				+ "Retrieval course @cse.uoi.gr\n"
@@ -120,6 +122,16 @@ public class MainAppController implements Initializable {
 	private void exitNormally() {
 		Stage stage = (Stage) mainAppVBox.getScene().getWindow();
 		stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
+	}
+	
+	private void warnUser(String warningText, String headerText) {
+		Alert warn = new Alert(AlertType.WARNING, warningText);
+		Stage warnstage = (Stage) warn.getDialogPane().getScene().getWindow();
+		warnstage.getIcons().add(
+				new Image(getClass().getResourceAsStream("../res/cse-logo.png"))
+		);
+		warn.setHeaderText(headerText);
+		warn.showAndWait();
 	}
 
 }
