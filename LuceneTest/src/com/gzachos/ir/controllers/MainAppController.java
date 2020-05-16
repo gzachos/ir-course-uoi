@@ -33,6 +33,9 @@ public class MainAppController implements Initializable {
 	public void initialize(URL location, ResourceBundle resources) {
 		searchEngine = SearchEngine.getInstance();
 		
+		String corpusSizeStr = String.valueOf(searchEngine.getCorpusSize());
+		mainSearchArea.setPromptText("Search among " + corpusSizeStr + " Wikipedia articles");
+		
 		mainSearchArea.setOnKeyTyped(new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(KeyEvent event) {

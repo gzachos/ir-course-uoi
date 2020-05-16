@@ -111,4 +111,8 @@ public class SearchEngine {
 	public void closeDocumentSearcher() {
 		docSearcher.close();
 	}
+	
+	public int getCorpusSize() {
+		return docSearcher.getCorpusSize();
+	}
 }

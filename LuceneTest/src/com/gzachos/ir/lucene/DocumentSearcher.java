@@ -57,6 +57,10 @@ public class DocumentSearcher {
 		}
 	}
 	
+	public int getCorpusSize() {
+		return indexReader.numDocs();
+	}
+	
 	public Query parseQuery(String queryStr) {
 		if (queryStr == null)
 			return null;
