@@ -41,7 +41,7 @@ public class AdvancedSearchController implements Initializable {
 	}
 	
 	private void setUpChoiceBoxes() {
-		String options[] = {"Anytime", "Last 24h", "Last week", "Last month", "Last year"};
+		String options[] = {"Anytime", "Past 24h", "Past week", "Past month", "Past year"};
 		updateChoiceBox.getItems().addAll(options);
 		creationChoiceBox.getItems().addAll(options);
 		updateChoiceBox.getSelectionModel().select("Anytime");
@@ -128,16 +128,16 @@ public class AdvancedSearchController implements Initializable {
 		// TODO handle multiple whitespace in phrase(s)
 		String tmpStr = andTextField.getText().strip();
 		if (tmpStr.length() > 0)
-			queryStr = "+" + tmpStr.replaceAll(" +", " +");
+			queryStr = "+" + escape(tmpStr).replaceAll(" +", " +");
 		tmpStr = phraseTextField.getText().strip();
 		if (tmpStr.length() > 0)
 			queryStr += " +\"" + tmpStr + "\"";
 		tmpStr = orTextField.getText().strip();
 		if (tmpStr.length() > 0)
-			queryStr += " " + tmpStr.replaceAll(" +", " OR ");
+			queryStr += " " + escape(tmpStr).replaceAll(" +", " OR ");
 		tmpStr = notTextField.getText().strip();
 		if (tmpStr.length() > 0)
-			queryStr += " -" + tmpStr.replaceAll(" +", " -");
+			queryStr += " -" + escape(tmpStr).replaceAll(" +", " -");
 //		tmpStr = getRangeQueryStr(updateChoiceBox);
 //		if (tmpStr != null)
 //			queryStr += " +" + tmpStr;
@@ -147,6 +147,16 @@ public class AdvancedSearchController implements Initializable {
 		if (queryStr.strip().length() == 0)
 			return null;
 		return queryStr;
+	}
+	
+	private String escape(String str) {
+		System.out.println(str);
+		String newStr = "";
+		String tokens[] = str.split(" +");
+		for (String token : tokens) {
+			newStr += "\"" + token + "\" ";
+		}
+		return newStr.strip();
 	}
 	
 	private String[] getFieldsToSearch() {
