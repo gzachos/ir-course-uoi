@@ -9,6 +9,7 @@ import java.util.Date;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
@@ -111,10 +112,11 @@ public class FileIndexer {
 		Document doc = new Document();
 		BufferedReader br = Files.newBufferedReader(filePath);
 		boolean readURL = false, readTitle = false, readHeading = false,
-				readContent = false;
+				readContent = false, readUpdateTime = false, readPublicationTime = false;
 		String line, contentStr = "", mediaStr = "", quoteStr = "",
 				currHeading = "", summaryStr = "", url = "", title = "",
 				referencesStr = "";
+		long updateTime = 0, publicationTime = 0;
 		
 		while ((line = br.readLine()) != null) {
 			if (line.equals("<url>"))
@@ -125,20 +127,31 @@ public class FileIndexer {
 				readTitle = true;
 			else if (line.equals("</title>"))
 				readTitle = false;
-			else if (line.equals("<heading>")) {
+			else if (line.equals("<heading>"))
 				readHeading = true;
-			} else if (line.equals("</heading>"))
+			else if (line.equals("</heading>"))
 				readHeading = false;
-			else if (line.equals("<content>")) {
+			else if (line.equals("<content>"))
 				readContent = true;
-			} else if (line.equals("</content>")) {
+			else if (line.equals("</content>"))
 				readContent = false;
-			}
+			else if (line.equals("<published>"))
+				readPublicationTime = true;
+			else if (line.equals("</published>"))
+				readPublicationTime = false;
+			else if (line.equals("<updated>"))
+				readUpdateTime = true;
+			else if (line.equals("</updated>"))
+				readUpdateTime = false;
 			
 			else if (readURL) {
 				url = line;
 			} else if (readTitle) {
 				title = line;
+			} else if (readPublicationTime) {
+				updateTime = Long.valueOf(line);
+			} else if (readUpdateTime) {
+				publicationTime = Long.valueOf(line);
 			} else if (readHeading) {
 				currHeading = line;
 				if (currHeading.equals("__multimedia__")) {
@@ -180,6 +193,10 @@ public class FileIndexer {
 			doc.add(new TextField(Globals.QUOTES_FIELD_NAME, quoteStr, Field.Store.NO));
 		if (referencesStr.length() > 0)
 			doc.add(new TextField(Globals.REFERENCES_FIELD_NAME, referencesStr, Field.Store.NO));
+		if (updateTime > 0)
+			doc.add(new LongPoint(Globals.UPDATE_TIME_FIELD_NAME, updateTime));
+		if (publicationTime > 0)
+			doc.add(new LongPoint(Globals.UPDATE_TIME_FIELD_NAME, publicationTime));
 		
 		return doc;
 	}
