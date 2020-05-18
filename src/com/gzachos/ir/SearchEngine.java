@@ -66,7 +66,6 @@ public class SearchEngine {
 			);
 		}
 		Query finalQuery = docSearcher.combineMultipleQueries(queries);
-		System.out.println(finalQuery.toString());
 		SearchResult searchResult = docSearcher.executeQuery(finalQuery, numPages, null);
 		if (searchResult == null)
 			return Globals.QUERY_EXEC_ERROR;

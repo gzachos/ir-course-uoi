@@ -97,7 +97,6 @@ public class AdvancedSearchController implements Initializable {
 	@FXML
 	private void conductAdvancedSearch() {
 		String queryStr = generateQueryStr();
-		System.out.println(queryStr);
 		if (queryStr == null) {
 			warnUser("You can't leave all text fields empty!", "Missing User Input");
 			return;
@@ -162,7 +161,6 @@ public class AdvancedSearchController implements Initializable {
 	}
 	
 	private String escape(String str) {
-		System.out.println(str);
 		String newStr = "";
 		String tokens[] = str.split(" +");
 		for (String token : tokens) {

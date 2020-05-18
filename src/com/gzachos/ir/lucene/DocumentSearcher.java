@@ -74,7 +74,6 @@ public class DocumentSearcher {
 		
 		try {
 			Query query = currentQueryParser.parse(queryStr);
-			System.out.println("Searching for: \"" + query.toString() + "\"");
 			return query;
 		} catch (ParseException pe) {
 			// System.err.println("Cannot parse query!");
@@ -123,6 +122,7 @@ public class DocumentSearcher {
 			ScoreDoc lastReturnedDoc = prevReturnedDocs.get(numPrevReturnedDocs-1);
 			searchResults = indexSearcher.searchAfter(lastReturnedDoc, query, docsToFetch + Globals.HITS_PER_PAGE);
 		} else {
+			System.out.println("Searching for: \"" + query.toString() + "\"");
 			long startTime = System.currentTimeMillis();
 			searchResults = indexSearcher.search(query, docsToFetch + Globals.HITS_PER_PAGE);
 			searchTime = (System.currentTimeMillis() - startTime) / 1000.0;
