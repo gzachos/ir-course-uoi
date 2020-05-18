@@ -21,7 +21,6 @@ public class MainApp extends Application {
 	private static String appName = "WikiSearch";
 	private static String appVersion = "0.4.0 BETA";
 	private HostServices hostServices;
-	private SearchEngine searchEngine;
 	
 	public static void main(String[] args) {
 		launch(args);
@@ -30,7 +29,6 @@ public class MainApp extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		try {
-			searchEngine = SearchEngine.getInstance();
 			this.stage = primaryStage;
 			Parent root = FXMLLoader.load(getClass().getResource("MainApp.fxml"));
 			Scene scene = new Scene(root);
@@ -69,7 +67,7 @@ public class MainApp extends Application {
 		});
 		
 		if (exitConfirmed.get() == true) {
-			searchEngine.closeDocumentSearcher();
+			SearchEngine.getInstance().closeDocumentSearcher();
 			stage.close();
 		}
 	}

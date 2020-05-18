@@ -7,6 +7,7 @@ import java.util.ResourceBundle;
 
 import com.gzachos.ir.Globals;
 import com.gzachos.ir.SearchEngine;
+import com.gzachos.ir.gui.IfaceRangeQuery;
 import com.gzachos.ir.gui.MainApp;
 
 import javafx.fxml.FXML;
@@ -41,16 +42,15 @@ public class AdvancedSearchController implements Initializable {
 	}
 	
 	private void setUpChoiceBoxes() {
-		String options[] = {"Anytime", "Past 24h", "Past week", "Past month", "Past year"};
+		String options[] = {"Anytime", "Past 24h", "Past week", "Past month",
+				"Past three months", "Past six months", "Past year"};
 		updateChoiceBox.getItems().addAll(options);
 		creationChoiceBox.getItems().addAll(options);
 		updateChoiceBox.getSelectionModel().select("Anytime");
 		creationChoiceBox.getSelectionModel().select("Anytime");
-		updateChoiceBox.setDisable(true);
-		creationChoiceBox.setDisable(true);
 	}
 	
-	private String getRangeQueryStr(ChoiceBox cbox) {
+	private IfaceRangeQuery getRangeQuery(ChoiceBox<String> cbox) {
 		int selectedIndex = cbox.getSelectionModel().getSelectedIndex();
 		long toDate = (new Date()).getTime() / 1000; // Time since epoch GMT
 		long fromDate;
@@ -66,6 +66,12 @@ public class AdvancedSearchController implements Initializable {
 				fromDate = toDate - secondsInOneDay * 30;
 				break;
 			case 4:
+				fromDate = toDate - secondsInOneDay * 90;
+				break;
+			case 5:
+				fromDate = toDate - secondsInOneDay * 180;
+				break;
+			case 6:
 				fromDate = toDate - secondsInOneDay * 365;
 				break;
 			default:
@@ -74,8 +80,18 @@ public class AdvancedSearchController implements Initializable {
 		String fieldName = (cbox == updateChoiceBox) ?
 				      Globals.UPDATE_TIME_FIELD_NAME :
 				  Globals.PUBLICATION_TIME_FIELD_NAME;
-		String rangeQueryStr = fieldName + ":[" + fromDate + " TO " + toDate + "]";
-		return rangeQueryStr;
+		return new IfaceRangeQuery(fieldName, fromDate, toDate);
+	}
+	
+	private ArrayList<IfaceRangeQuery> getRangeQueries() {
+		ArrayList<IfaceRangeQuery> queries = new ArrayList<IfaceRangeQuery>();
+		IfaceRangeQuery query = getRangeQuery(creationChoiceBox);
+		if (query != null)
+			queries.add(query);
+		query = getRangeQuery(updateChoiceBox);
+		if (query != null)
+			queries.add(query);
+		return queries;
 	}
 	
 	@FXML
@@ -87,7 +103,9 @@ public class AdvancedSearchController implements Initializable {
 			return;
 		}
 		String fields[] = getFieldsToSearch();
-		String res = searchEngine.searchForAdvanced(queryStr, 5, fields, Globals.DEFAULT_QUERY_BOOSTS);
+		ArrayList<IfaceRangeQuery> rangeQueries = getRangeQueries();
+		String res = searchEngine.searchForAdvanced(queryStr, rangeQueries, 5, fields,
+				Globals.DEFAULT_QUERY_BOOSTS);
 		if (res != null)
 			warnUser(res, "Search Error");
 		else
@@ -138,12 +156,6 @@ public class AdvancedSearchController implements Initializable {
 		tmpStr = notTextField.getText().strip();
 		if (tmpStr.length() > 0)
 			queryStr += " -" + escape(tmpStr).replaceAll(" +", " -");
-//		tmpStr = getRangeQueryStr(updateChoiceBox);
-//		if (tmpStr != null)
-//			queryStr += " +" + tmpStr;
-//		tmpStr = getRangeQueryStr(creationChoiceBox);
-//		if (tmpStr != null)
-//			queryStr += " +" + tmpStr;
 		if (queryStr.strip().length() == 0)
 			return null;
 		return queryStr;

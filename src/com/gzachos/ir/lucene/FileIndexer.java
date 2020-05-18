@@ -34,14 +34,14 @@ public class FileIndexer {
 	public void createIndex(boolean overwriteIndex) {
 		try {
 			Path indexDirPath = Paths.get(indexPath);
-			
+
 			if (!Files.isDirectory(indexDirPath)) {
 				System.err.println(Config.INDEX_PATH + ": Not a directory");
 				System.exit(-1);
 			}
 			
 			if (!Files.isWritable(indexDirPath)) {
-				System.err.println(Config.INDEX_PATH + " : Permission writing denied");
+				System.err.println(Config.INDEX_PATH + ": Permission writing denied");
 				System.exit(-1);
 			}
 			
@@ -60,6 +60,7 @@ public class FileIndexer {
 			IndexWriterConfig iwc = new IndexWriterConfig();
 			// iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 			iwc.setOpenMode(OpenMode.CREATE); // to overwrite index
+			iwc.setRAMBufferSizeMB(512.0);
 			IndexWriter indexWriter = new IndexWriter(indexDir, iwc);
 			indexDocs(indexWriter);
 			int numDocs = indexWriter.getDocStats().numDocs;
@@ -69,7 +70,7 @@ public class FileIndexer {
 			double indexingDuration = (endDate.getTime() - startDate.getTime()) / 1000.0;
 			System.out.println("\nIndexing of " + numDocs + " documents finished in " 
 					+ indexingDuration + " seconds");
-		} catch (IOException e) {
+		} catch (Exception e) {
 			System.err.println("Error opening FSDirectory");
 			e.printStackTrace();
 			System.exit(-1);
@@ -78,6 +79,11 @@ public class FileIndexer {
 	
 	private void indexDocs(final IndexWriter indexWriter) {
 		Path corpusDirPath = Paths.get(Config.CORPUS_PATH);
+		
+		if (Files.notExists(corpusDirPath)) {
+			System.err.println(Config.CORPUS_PATH + ": No such file or directory");
+			System.exit(-1);
+		}
 		
 		if (!Files.isDirectory(corpusDirPath)) {
 			System.err.println(Config.CORPUS_PATH + ": Not a directory");
@@ -148,9 +154,9 @@ public class FileIndexer {
 				url = line;
 			} else if (readTitle) {
 				title = line;
-			} else if (readPublicationTime) {
-				updateTime = Long.valueOf(line);
 			} else if (readUpdateTime) {
+				updateTime = Long.valueOf(line);
+			} else if (readPublicationTime) {
 				publicationTime = Long.valueOf(line);
 			} else if (readHeading) {
 				currHeading = line;
@@ -193,10 +199,10 @@ public class FileIndexer {
 			doc.add(new TextField(Globals.QUOTES_FIELD_NAME, quoteStr, Field.Store.NO));
 		if (referencesStr.length() > 0)
 			doc.add(new TextField(Globals.REFERENCES_FIELD_NAME, referencesStr, Field.Store.NO));
+		if (publicationTime > 0)
+			doc.add(new LongPoint(Globals.PUBLICATION_TIME_FIELD_NAME, publicationTime));
 		if (updateTime > 0)
 			doc.add(new LongPoint(Globals.UPDATE_TIME_FIELD_NAME, updateTime));
-		if (publicationTime > 0)
-			doc.add(new LongPoint(Globals.UPDATE_TIME_FIELD_NAME, publicationTime));
 		
 		return doc;
 	}

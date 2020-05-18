@@ -8,6 +8,7 @@ import java.util.Stack;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.Query;
 
+import com.gzachos.ir.gui.IfaceRangeQuery;
 import com.gzachos.ir.lucene.DocumentSearcher;
 import com.gzachos.ir.lucene.FileIndexer;
 import com.gzachos.ir.lucene.QueryInfo;
@@ -25,11 +26,11 @@ public class SearchEngine {
 	
 	private SearchEngine() {
 		 fileIndexer = new FileIndexer(Config.INDEX_PATH);
+		 createIndex(); // Index should be created before DocumentSearcher!
 		 docSearcher = new DocumentSearcher(Config.INDEX_PATH);
 		 queryInfos = new Stack<QueryInfo>();
 		 pendingDocHits = null;
 		 overwriteIndex = false;
-		 createIndex();
 	}
 	
 	public static SearchEngine getInstance() {
@@ -50,12 +51,23 @@ public class SearchEngine {
 		return null;
 	}
 	
-	public String searchForAdvanced(String queryStr, int numPages, String fields[], Map<String, Float> boosts) {
+	public String searchForAdvanced(String queryStr, ArrayList<IfaceRangeQuery> rangeQueries,
+			int numPages, String fields[], Map<String, Float> boosts) {
+		ArrayList<Query> queries = new ArrayList<Query>();
 		Query query = docSearcher.parseAdvancedQuery(queryStr, fields, boosts);
 		if (query == null) 
 			return Globals.QUERY_PARSE_ERROR;
-		System.out.println("query: " + query); // TODO remove
-		SearchResult searchResult = docSearcher.executeQuery(query, numPages, null);
+		queries.add(query);
+		for (IfaceRangeQuery rq : rangeQueries) {
+			queries.add(docSearcher.buildRangeQuery(
+					rq.getField(),
+					rq.getLowerBound(),
+					rq.getUpperBound())
+			);
+		}
+		Query finalQuery = docSearcher.combineMultipleQueries(queries);
+		System.out.println(finalQuery.toString());
+		SearchResult searchResult = docSearcher.executeQuery(finalQuery, numPages, null);
 		if (searchResult == null)
 			return Globals.QUERY_EXEC_ERROR;
 		currentQueryInfo = new QueryInfo(queryStr, query, searchResult);

@@ -10,11 +10,15 @@ import java.util.Map;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser.Operator;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -76,6 +80,18 @@ public class DocumentSearcher {
 			// System.err.println("Cannot parse query!");
 			return null;
 		}
+	}
+	
+	public Query buildRangeQuery(String field, long lowerBount, long upperBound) {
+		Query query = LongPoint.newRangeQuery(field, lowerBount, upperBound);
+		return query;
+	}
+	
+	public Query combineMultipleQueries(ArrayList<Query> queries) {
+		Builder queryBuilder = new BooleanQuery.Builder();
+		for (Query query : queries)
+			queryBuilder.add(query, BooleanClause.Occur.MUST);
+		return queryBuilder.build();
 	}
 	
 	public Query parseAdvancedQuery(String queryStr, String fields[], Map<String, Float> boosts) {
