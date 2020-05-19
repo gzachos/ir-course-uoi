@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox prefHeight="550.0" prefWidth="1080.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.gzachos.ir.controllers.AdvancedSearchController">
+<VBox prefHeight="650.0" prefWidth="1080.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.gzachos.ir.controllers.AdvancedSearchController">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -57,7 +57,7 @@
         </Menu>
       </menus>
     </MenuBar>
-      <AnchorPane prefHeight="572.0" prefWidth="900.0">
+      <AnchorPane prefWidth="900.0" VBox.vgrow="ALWAYS">
          <children>
             <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <children>
@@ -257,9 +257,38 @@
                         </ChoiceBox>
                      </children>
                   </HBox>
+                  <HBox layoutX="40.0" layoutY="287.0" prefHeight="32.0">
+                     <children>
+                        <Label prefHeight="32.0" style="-fx-font-weight: bold;" text="Finally, sort your results">
+                           <HBox.margin>
+                              <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                           </HBox.margin>
+                        </Label>
+                     </children>
+                  </HBox>
+                  <HBox layoutX="40.0" layoutY="419.0" prefHeight="50.0">
+                     <children>
+                        <Label prefHeight="32.0" prefWidth="150.0" text="Sort by:">
+                           <font>
+                              <Font size="14.0" />
+                           </font>
+                           <HBox.margin>
+                              <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                           </HBox.margin>
+                        </Label>
+                        <ChoiceBox fx:id="sortChoiceBox" prefWidth="250.0">
+                           <opaqueInsets>
+                              <Insets />
+                           </opaqueInsets>
+                           <HBox.margin>
+                              <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                           </HBox.margin>
+                        </ChoiceBox>
+                     </children>
+                  </HBox>
                   <HBox alignment="BOTTOM_RIGHT" layoutX="40.0" layoutY="419.0" prefHeight="50.0">
                      <children>
-                        <Button fx:id="cancelAdvSearchButton" mnemonicParsing="false" onAction="#cancelAdvancedSearch" prefHeight="40.0" text="Cancel">
+                        <Button mnemonicParsing="false" onAction="#cancelAdvancedSearch" prefHeight="40.0" text="Cancel">
                            <HBox.margin>
                               <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
                            </HBox.margin>

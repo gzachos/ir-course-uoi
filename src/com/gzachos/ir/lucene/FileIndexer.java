@@ -10,6 +10,7 @@ import java.util.Date;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.NumericDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
@@ -199,10 +200,14 @@ public class FileIndexer {
 			doc.add(new TextField(Globals.QUOTES_FIELD_NAME, quoteStr, Field.Store.NO));
 		if (referencesStr.length() > 0)
 			doc.add(new TextField(Globals.REFERENCES_FIELD_NAME, referencesStr, Field.Store.NO));
-		if (publicationTime > 0)
+		if (publicationTime > 0) {
 			doc.add(new LongPoint(Globals.PUBLICATION_TIME_FIELD_NAME, publicationTime));
-		if (updateTime > 0)
+			doc.add(new NumericDocValuesField(Globals.BY_PUBLICATION_TIME_FIELD_NAME, publicationTime));
+		}
+		if (updateTime > 0) {
 			doc.add(new LongPoint(Globals.UPDATE_TIME_FIELD_NAME, updateTime));
+			doc.add(new NumericDocValuesField(Globals.BY_UPDATE_TIME_FIELD_NAME, updateTime));
+		}
 		
 		return doc;
 	}

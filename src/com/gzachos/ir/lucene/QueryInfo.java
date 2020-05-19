@@ -5,11 +5,13 @@ import org.apache.lucene.search.Query;
 public class QueryInfo {
 	private String queryStr;
 	private Query query;
+	private int sortOption;
 	private SearchResult searchResult;
 	
-	public QueryInfo(String queryStr, Query query, SearchResult searchResult) {
+	public QueryInfo(String queryStr, Query query, int sortOption, SearchResult searchResult) {
 		this.setQueryStr(queryStr);
 		this.setQuery(query);
+		this.setSortOption(sortOption);
 		this.setSearchResult(searchResult);
 	}
 
@@ -39,6 +41,14 @@ public class QueryInfo {
 	
 	public void appendToSearchResult(SearchResult searchResult) {
 		this.searchResult.getHits().addAll(searchResult.getHits());
+	}
+
+	public int getSortOption() {
+		return sortOption;
+	}
+
+	public void setSortOption(int sortOption) {
+		this.sortOption = sortOption;
 	}
 	
 }

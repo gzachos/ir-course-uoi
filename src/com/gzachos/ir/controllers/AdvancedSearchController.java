@@ -32,7 +32,7 @@ public class AdvancedSearchController implements Initializable {
 	@FXML private TextField andTextField, orTextField, notTextField, phraseTextField;
 	@FXML private CheckBox titleCheckBox, contentCheckBox, multimediaCheckBox,
 	                       quotesCheckBox, referencesCheckBox;
-	@FXML private ChoiceBox<String> updateChoiceBox, creationChoiceBox;
+	@FXML private ChoiceBox<String> updateChoiceBox, creationChoiceBox, sortChoiceBox;
 	@FXML private Button cacnelAdvSearchButton, advSearchButton;
 	
 	@Override
@@ -48,6 +48,11 @@ public class AdvancedSearchController implements Initializable {
 		creationChoiceBox.getItems().addAll(options);
 		updateChoiceBox.getSelectionModel().select("Anytime");
 		creationChoiceBox.getSelectionModel().select("Anytime");
+		
+		String sortOptions[] = {"Relevance", "Publication Date - Ascending", "Publication Date - Descending",
+				"Modication Date - Ascending", "Modlication Date - Descending"};
+		sortChoiceBox.getItems().addAll(sortOptions);
+		sortChoiceBox.getSelectionModel().select("Relevance");
 	}
 	
 	private IfaceRangeQuery getRangeQuery(ChoiceBox<String> cbox) {
@@ -94,6 +99,10 @@ public class AdvancedSearchController implements Initializable {
 		return queries;
 	}
 	
+	private int getSortOption() {
+		return sortChoiceBox.getSelectionModel().getSelectedIndex();
+	}
+	
 	@FXML
 	private void conductAdvancedSearch() {
 		String queryStr = generateQueryStr();
@@ -103,8 +112,9 @@ public class AdvancedSearchController implements Initializable {
 		}
 		String fields[] = getFieldsToSearch();
 		ArrayList<IfaceRangeQuery> rangeQueries = getRangeQueries();
+		int sortOption = getSortOption();
 		String res = searchEngine.searchForAdvanced(queryStr, rangeQueries, 5, fields,
-				Globals.DEFAULT_QUERY_BOOSTS);
+				Globals.DEFAULT_QUERY_BOOSTS, sortOption);
 		if (res != null)
 			warnUser(res, "Search Error");
 		else

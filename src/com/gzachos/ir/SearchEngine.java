@@ -40,19 +40,20 @@ public class SearchEngine {
 	}
 	
 	public String searchFor(String queryStr, int numPages) {
+		int sortOption = Globals.DEFAULT_SORT_OPTION;
 		Query query = docSearcher.parseQuery(queryStr);
 		if (query == null) 
 			return Globals.QUERY_PARSE_ERROR;
-		SearchResult searchResult = docSearcher.executeQuery(query, numPages, null);
+		SearchResult searchResult = docSearcher.executeQuery(query, numPages, sortOption, null);
 		if (searchResult == null)
 			return Globals.QUERY_EXEC_ERROR;
-		currentQueryInfo = new QueryInfo(queryStr, query, searchResult);
+		currentQueryInfo = new QueryInfo(queryStr, query, sortOption, searchResult);
 		pendingDocHits = docSearcher.getDocuments(searchResult);
 		return null;
 	}
 	
 	public String searchForAdvanced(String queryStr, ArrayList<IfaceRangeQuery> rangeQueries,
-			int numPages, String fields[], Map<String, Float> boosts) {
+			int numPages, String fields[], Map<String, Float> boosts, int sortOption) {
 		ArrayList<Query> queries = new ArrayList<Query>();
 		Query query = docSearcher.parseAdvancedQuery(queryStr, fields, boosts);
 		if (query == null) 
@@ -66,10 +67,10 @@ public class SearchEngine {
 			);
 		}
 		Query finalQuery = docSearcher.combineMultipleQueries(queries);
-		SearchResult searchResult = docSearcher.executeQuery(finalQuery, numPages, null);
+		SearchResult searchResult = docSearcher.executeQuery(finalQuery, numPages, sortOption, null);
 		if (searchResult == null)
 			return Globals.QUERY_EXEC_ERROR;
-		currentQueryInfo = new QueryInfo(queryStr, query, searchResult);
+		currentQueryInfo = new QueryInfo(queryStr, query, sortOption, searchResult);
 		pendingDocHits = docSearcher.getDocuments(searchResult);
 		return null;
 	}
@@ -96,9 +97,11 @@ public class SearchEngine {
 	public ArrayList<Document> searchAfter(int numPages) {
 		if (currentQueryInfo == null)
 			return null;
+		System.out.println("searchAfter - " + currentQueryInfo.getSortOption());
 		SearchResult searchResult = docSearcher.executeQuery(
 				currentQueryInfo.getQuery(),
 				numPages,
+				currentQueryInfo.getSortOption(),
 				currentQueryInfo.getSearchResult()
 		);
 		// In order to keep lastReturnedDoc up-to-date.

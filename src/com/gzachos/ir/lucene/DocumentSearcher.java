@@ -22,6 +22,7 @@ import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHits;
 import org.apache.lucene.store.FSDirectory;
@@ -100,31 +101,35 @@ public class DocumentSearcher {
 		return query;
 	}
 	
-	public SearchResult executeQuery(Query query, int numPages, SearchResult prevResults) {
+	public SearchResult executeQuery(Query query, int numPages, int sortOption, SearchResult prevResults) {
 		try {
-			return doPagingSearch(query, numPages, prevResults);
+			return doPagingSearch(query, numPages, sortOption, prevResults);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 	
-	private SearchResult doPagingSearch(Query query, int numPages, SearchResult prevResults) throws IOException {
+	private SearchResult doPagingSearch(Query query, int numPages, int sortOption, SearchResult prevResults)
+			throws IOException {
 		int docsToFetch = numPages * Globals.HITS_PER_PAGE;
 		TopDocs searchResults;
 		int numPrevReturnedDocs = 0;
 		double searchTime = 0;
 		ArrayList<ScoreDoc> prevReturnedDocs = null;
-	
+		Sort sort = Globals.SORT_OPTIONS[sortOption];
+		
 		if (prevResults != null && prevResults.getNumHits() > 0) {
 			prevReturnedDocs = prevResults.getHits();
 			numPrevReturnedDocs = prevReturnedDocs.size();
 			ScoreDoc lastReturnedDoc = prevReturnedDocs.get(numPrevReturnedDocs-1);
-			searchResults = indexSearcher.searchAfter(lastReturnedDoc, query, docsToFetch + Globals.HITS_PER_PAGE);
+			searchResults = indexSearcher.searchAfter(lastReturnedDoc,
+					query, docsToFetch + Globals.HITS_PER_PAGE, sort);
 		} else {
 			System.out.println("Searching for: \"" + query.toString() + "\"");
 			long startTime = System.currentTimeMillis();
-			searchResults = indexSearcher.search(query, docsToFetch + Globals.HITS_PER_PAGE);
+			searchResults = indexSearcher.search(query,
+					docsToFetch + Globals.HITS_PER_PAGE, sort);
 			searchTime = (System.currentTimeMillis() - startTime) / 1000.0;
 		}
 		boolean isPartialSearch = (prevResults != null); // TODO verify condition
@@ -144,7 +149,7 @@ public class DocumentSearcher {
 		for (int i = 0; i < numHits; i++) {
 			ScoreDoc scoreDoc = hits.get(i);
 			Document doc = indexSearcher.doc(scoreDoc.doc);
-
+			
 			if (!alreadyReturnedDoc(doc, indexSearcher, prevReturnedDocs, returnedDocs)) {
 				returnedDocs.add(scoreDoc);
 				if ((numReturnedDocs = returnedDocs.size()) == docsToFetch)
@@ -153,14 +158,13 @@ public class DocumentSearcher {
 
 			if (i == (numHits-1) && haveEnoughTotalHits) {
 				int newDocsToFetch = (docsToFetch - numReturnedDocs) + Globals.HITS_PER_PAGE;
-//				System.out.println("About to fetch: " + newDocsToFetch + " more docs");
-				TopDocs newSearchResults = indexSearcher.searchAfter(lastFetchedDoc, query, newDocsToFetch);
+				TopDocs newSearchResults = indexSearcher.searchAfter(lastFetchedDoc,
+						query, newDocsToFetch, sort);
 				ScoreDoc[] newHitsArray = newSearchResults.scoreDocs;
 				ArrayList<ScoreDoc> newHits = new ArrayList<ScoreDoc>(Arrays.asList(newHitsArray));
 				hits.addAll(newHits);
-//				System.out.println("Fetched " + newHits.size() + " more docs");
 				numHits += newHits.size();
-				lastFetchedDoc = hits.get(hits.size()-1); // In case of 0 hits, lastFetchedDoc value will be retained.
+				lastFetchedDoc = hits.get(hits.size()-1); // In case of 0 hits, lastFetchedDoc valufe will be retained.
 			}
 		}
 		return new SearchResult(returnedDocs, searchTime, numTotalHits, totalHits.relation, isPartialSearch);
