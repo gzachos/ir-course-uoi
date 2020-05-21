@@ -9,6 +9,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.search.Query;
 
 import com.gzachos.ir.gui.IfaceRangeQuery;
+import com.gzachos.ir.gui.IfaceSearchResult;
 import com.gzachos.ir.lucene.DocumentSearcher;
 import com.gzachos.ir.lucene.FileIndexer;
 import com.gzachos.ir.lucene.QueryInfo;
@@ -23,6 +24,7 @@ public class SearchEngine {
 	private Stack<QueryInfo> queryInfos;
 	private QueryInfo currentQueryInfo;
 	private ArrayList<Document> pendingDocHits;
+	private IfaceSearchResult pendingSearchResults;
 	
 	private SearchEngine() {
 		 fileIndexer = new FileIndexer(Config.INDEX_PATH);
@@ -30,6 +32,7 @@ public class SearchEngine {
 		 docSearcher = new DocumentSearcher(Config.INDEX_PATH);
 		 queryInfos = new Stack<QueryInfo>();
 		 pendingDocHits = null;
+		 pendingSearchResults = null;
 		 overwriteIndex = false;
 	}
 	
@@ -48,7 +51,9 @@ public class SearchEngine {
 		if (searchResult == null)
 			return Globals.QUERY_EXEC_ERROR;
 		currentQueryInfo = new QueryInfo(queryStr, query, sortOption, searchResult);
-		pendingDocHits = docSearcher.getDocuments(searchResult);
+		pendingSearchResults = new IfaceSearchResult();
+		pendingSearchResults.setDocs(docSearcher.getDocuments(searchResult));
+		pendingSearchResults.setHighlights(searchResult.getHighlights());
 		return null;
 	}
 	
@@ -71,16 +76,18 @@ public class SearchEngine {
 		if (searchResult == null)
 			return Globals.QUERY_EXEC_ERROR;
 		currentQueryInfo = new QueryInfo(queryStr, query, sortOption, searchResult);
-		pendingDocHits = docSearcher.getDocuments(searchResult);
+		pendingSearchResults = new IfaceSearchResult();
+		pendingSearchResults.setDocs(docSearcher.getDocuments(searchResult));
+		pendingSearchResults.setHighlights(searchResult.getHighlights());
 		return null;
 	}
 	
-	public ArrayList<Document> getPendingDocHits() {
-		if (currentQueryInfo == null || pendingDocHits == null)
+	public IfaceSearchResult getPendingSearchResults() {
+		if (currentQueryInfo == null || pendingSearchResults == null)
 			return null;
-		ArrayList<Document> tmpDocs = pendingDocHits;
-		pendingDocHits = null;
-		return tmpDocs;
+		IfaceSearchResult tmpSearchRes = pendingSearchResults;
+		pendingSearchResults = null;
+		return tmpSearchRes;
 	}
 	
 	public String getCurrentQueryStats() {
@@ -94,7 +101,7 @@ public class SearchEngine {
 		currentQueryInfo = null;
 	}
 	
-	public ArrayList<Document> searchAfter(int numPages) {
+	public IfaceSearchResult searchAfter(int numPages) {
 		if (currentQueryInfo == null)
 			return null;
 		System.out.println("searchAfter - " + currentQueryInfo.getSortOption());
@@ -106,7 +113,10 @@ public class SearchEngine {
 		);
 		// In order to keep lastReturnedDoc up-to-date.
 		currentQueryInfo.appendToSearchResult(searchResult);
-		return docSearcher.getDocuments(searchResult);
+		IfaceSearchResult res = new IfaceSearchResult();
+		res.setDocs(docSearcher.getDocuments(searchResult));
+		res.setHighlights(searchResult.getHighlights());
+		return res;
 	}
 	
 	public void createIndex() {

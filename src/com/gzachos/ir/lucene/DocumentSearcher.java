@@ -25,6 +25,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHits;
+import org.apache.lucene.search.uhighlight.UnifiedHighlighter;
 import org.apache.lucene.store.FSDirectory;
 
 import com.gzachos.ir.Globals;
@@ -134,6 +135,9 @@ public class DocumentSearcher {
 		}
 		boolean isPartialSearch = (prevResults != null); // TODO verify condition
 		
+		ArrayList<String> highlightsPerDoc = getHighlightsPerDoc(query, searchResults);
+		
+		ArrayList<String> returnedDocHighlights = new ArrayList<String>();
 		ArrayList<ScoreDoc> returnedDocs = new ArrayList<ScoreDoc>();
 		TotalHits totalHits = searchResults.totalHits; 
 		int numTotalHits = Math.toIntExact(totalHits.value);
@@ -141,17 +145,24 @@ public class DocumentSearcher {
 		ArrayList<ScoreDoc> hits = new ArrayList<ScoreDoc>(Arrays.asList(hitsArray));
 		int numHits = hits.size();
 		if (numHits == 0)
-			return new SearchResult(returnedDocs, searchTime, numTotalHits, totalHits.relation, isPartialSearch);
+			return new SearchResult(returnedDocs, returnedDocHighlights, searchTime, numTotalHits,
+					totalHits.relation, isPartialSearch);
 
 		ScoreDoc lastFetchedDoc = hits.get(numHits-1);
 		boolean haveEnoughTotalHits = (docsToFetch < numTotalHits);
 		int numReturnedDocs = 0;
+
 		for (int i = 0; i < numHits; i++) {
 			ScoreDoc scoreDoc = hits.get(i);
-			Document doc = indexSearcher.doc(scoreDoc.doc);
-			
+			int docID = scoreDoc.doc;
+			Document doc = indexSearcher.doc(docID);
+
 			if (!alreadyReturnedDoc(doc, indexSearcher, prevReturnedDocs, returnedDocs)) {
 				returnedDocs.add(scoreDoc);
+				if (highlightsPerDoc != null)
+					returnedDocHighlights.add(highlightsPerDoc.get(i));
+				else
+					System.out.println("null");
 				if ((numReturnedDocs = returnedDocs.size()) == docsToFetch)
 					break;
 			}
@@ -163,11 +174,37 @@ public class DocumentSearcher {
 				ScoreDoc[] newHitsArray = newSearchResults.scoreDocs;
 				ArrayList<ScoreDoc> newHits = new ArrayList<ScoreDoc>(Arrays.asList(newHitsArray));
 				hits.addAll(newHits);
+				ArrayList<String> newHighlightsPerDoc = getHighlightsPerDoc(query, searchResults);
+				highlightsPerDoc.addAll(newHighlightsPerDoc);
 				numHits += newHits.size();
 				lastFetchedDoc = hits.get(hits.size()-1); // In case of 0 hits, lastFetchedDoc valufe will be retained.
 			}
 		}
-		return new SearchResult(returnedDocs, searchTime, numTotalHits, totalHits.relation, isPartialSearch);
+		return new SearchResult(returnedDocs, returnedDocHighlights, searchTime, numTotalHits, totalHits.relation, isPartialSearch);
+	}
+	
+	private ArrayList<String> getHighlightsPerDoc(Query query, TopDocs searchResults) {
+		ArrayList<String> highlightsPerDoc = new ArrayList<String>();
+		UnifiedHighlighter highlighter = new UnifiedHighlighter(indexSearcher, standardAnalyzer);
+		Map<String, String[]> highlights;
+		try {
+			highlights = highlighter.highlightFields(Globals.DOCUMENT_HIGHLIGHT_FIELDS, query, searchResults);
+		} catch (IOException e) {
+			return null;
+		}
+		
+		for (int i = 0; i < searchResults.scoreDocs.length; i++) {
+			String hstr = "";
+			for (String field : Globals.DOCUMENT_HIGHLIGHT_FIELDS) {
+				String matches[] = highlights.get(field);
+				if (matches[i] == null)
+					continue;
+				hstr += matches[i];
+			}
+			highlightsPerDoc.add(hstr);
+		}
+		
+		return highlightsPerDoc;
 	}
 	
 	private boolean alreadyReturnedDoc(Document doc, IndexSearcher indexSearcher, ArrayList<ScoreDoc> prevReturnedDocs,

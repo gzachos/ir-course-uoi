@@ -7,14 +7,16 @@ import org.apache.lucene.search.TotalHits.Relation;
 
 public class SearchResult {
 	private ArrayList<ScoreDoc> scoreDocs;
+	private ArrayList<String> highlights;
 	private double searchTimeSec;
 	private int numTotalHits;
 	private Relation relation;
 	private boolean isPartialResult;
 	
-	public SearchResult(ArrayList<ScoreDoc> scoreDocs, double searchTimeSec, int numTotalHits,
-			Relation relation, boolean isPartialResult) {
+	public SearchResult(ArrayList<ScoreDoc> scoreDocs, ArrayList<String> highlights,
+			double searchTimeSec, int numTotalHits, Relation relation, boolean isPartialResult) {
 		this.scoreDocs = scoreDocs;
+		this.highlights = highlights;
 		this.searchTimeSec = searchTimeSec;
 		this.numTotalHits = numTotalHits;
 		this.relation = relation;
@@ -23,6 +25,10 @@ public class SearchResult {
 	
 	public ArrayList<ScoreDoc> getHits() {
 		return scoreDocs;
+	}
+	
+	public ArrayList<String> getHighlights() {
+		return highlights;
 	}
 	
 	public int getNumHits() {

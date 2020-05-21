@@ -14,6 +14,8 @@ public class Globals {
 			BY_UPDATE_TIME_FIELD_NAME = "byUpdate", BY_PUBLICATION_TIME_FIELD_NAME = "byPublication";
 	public static final String[] DOCUMENT_FIELDS = {TITLE_FIELD_NAME, CONTENT_FIELD_NAME, MULTIMEDIA_FIELD_NAME,
 			QUOTES_FIELD_NAME, REFERENCES_FIELD_NAME};
+	public static final String[] DOCUMENT_HIGHLIGHT_FIELDS = {CONTENT_FIELD_NAME, MULTIMEDIA_FIELD_NAME,
+			QUOTES_FIELD_NAME, REFERENCES_FIELD_NAME};
 	public static final int HITS_PER_PAGE = 10;
 	public static final Map<String, Float> QUERY_BOOSTS = Map.of(
 			"title",      10.0f,

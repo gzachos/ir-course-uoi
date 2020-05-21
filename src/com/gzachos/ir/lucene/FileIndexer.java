@@ -191,15 +191,15 @@ public class FileIndexer {
 		
 		doc.add(new StoredField(Globals.URL_FIELD_NAME, url));
 		doc.add(new TextField(Globals.TITLE_FIELD_NAME, title, Field.Store.YES));
-		doc.add(new TextField(Globals.CONTENT_FIELD_NAME, contentStr, Field.Store.NO));
+		doc.add(new TextField(Globals.CONTENT_FIELD_NAME, contentStr, Field.Store.YES));
 		doc.add(new StoredField(Globals.SUMMARY_FIELD_NAME, summaryStr));
 		
 		if (mediaStr.length() > 0)
-			doc.add(new TextField(Globals.MULTIMEDIA_FIELD_NAME, mediaStr, Field.Store.NO));
+			doc.add(new TextField(Globals.MULTIMEDIA_FIELD_NAME, mediaStr, Field.Store.YES));
 		if (quoteStr.length() > 0)
-			doc.add(new TextField(Globals.QUOTES_FIELD_NAME, quoteStr, Field.Store.NO));
+			doc.add(new TextField(Globals.QUOTES_FIELD_NAME, quoteStr, Field.Store.YES));
 		if (referencesStr.length() > 0)
-			doc.add(new TextField(Globals.REFERENCES_FIELD_NAME, referencesStr, Field.Store.NO));
+			doc.add(new TextField(Globals.REFERENCES_FIELD_NAME, referencesStr, Field.Store.YES));
 		if (publicationTime > 0) {
 			doc.add(new LongPoint(Globals.PUBLICATION_TIME_FIELD_NAME, publicationTime));
 			doc.add(new NumericDocValuesField(Globals.BY_PUBLICATION_TIME_FIELD_NAME, publicationTime));

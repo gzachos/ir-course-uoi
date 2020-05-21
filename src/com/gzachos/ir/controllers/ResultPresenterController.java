@@ -9,6 +9,7 @@ import org.apache.lucene.document.Document;
 import com.gzachos.ir.Globals;
 import com.gzachos.ir.SearchEngine;
 import com.gzachos.ir.gui.IfaceDoc;
+import com.gzachos.ir.gui.IfaceSearchResult;
 import com.gzachos.ir.gui.MainApp;
 
 import javafx.application.HostServices;
@@ -57,17 +58,23 @@ public class ResultPresenterController implements Initializable {
 	}
 		
 	private boolean getSearchResults(boolean isPartialSearch) {
+		IfaceSearchResult searchResults;
 		ArrayList<Document> docs;
+		ArrayList<String> highlights;
 		if (isPartialSearch) {
-			if ((docs = searchEngine.searchAfter(5)) == null)
+			if ((searchResults = searchEngine.searchAfter(5)) == null)
 				return false; // No need to populate pages
 		} else {
 			do {
-				docs = searchEngine.getPendingDocHits();
-			} while (docs == null);
+				searchResults = searchEngine.getPendingSearchResults();
+			} while (searchResults == null);
 		}
+		docs = searchResults.getDocs();
+		highlights = searchResults.getHighlights(); // TODO check for null!
 		ArrayList<ArrayList<IfaceDoc>> ifaceDocs = new ArrayList<ArrayList<IfaceDoc>>();
 
+		boolean haveHighlights = (highlights != null && highlights.size() == docs.size());
+		
 		int pageNum = 0;
 		for (int i = 0; i < docs.size(); i++) {
 			if (i % Globals.HITS_PER_PAGE == 0) {
@@ -78,7 +85,8 @@ public class ResultPresenterController implements Initializable {
 			ifaceDocs.get(pageNum-1).add(new IfaceDoc(
 					doc.get(Globals.URL_FIELD_NAME),
 					doc.get(Globals.TITLE_FIELD_NAME),
-					doc.get(Globals.SUMMARY_FIELD_NAME))
+					doc.get(Globals.SUMMARY_FIELD_NAME),
+					(haveHighlights) ? highlights.get(i): null)
 			);
 		}
 		int numPages = pageNum;

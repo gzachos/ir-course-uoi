@@ -1,24 +1,31 @@
 package com.gzachos.ir.gui;
 
+import java.util.ArrayList;
+
 import javafx.geometry.Insets;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 
 public class IfaceDoc {
-	Hyperlink url;
-	Label title;
-	Text summary;
+	private Hyperlink url;
+	private Label title;
+	private TextFlow summaryFlow;
 	
-	public IfaceDoc(String urlStr, String titleStr, String summaryStr) {
+	public IfaceDoc(String urlStr, String titleStr, String summaryStr, String highlightStr) {
 		url = new Hyperlink(urlStr);
 		title = new Label(titleStr);
-		summary = new Text(summaryStr);
+		summaryFlow = new TextFlow();
+		Text summaryText = new Text(summaryStr);
+		summaryText.setStyle("-fx-font-size: 12");
+		ArrayList<Text> texts = Utils.parseHighlightText(highlightStr);
+		texts.add(0, summaryText);
+		summaryFlow.getChildren().addAll(texts);
 		title.setStyle("-fx-font-weight: bold; -fx-font-size: 14");
 		title.setPadding(new Insets(10, 0, 0, 0));
 		url.setStyle("-fx-font-size: 13");
 		url.setPadding(new Insets(0, 0, 0, 0));
-		summary.setStyle("-fx-font-size: 12");
 	}
 	
 	public Hyperlink getUrl() {
@@ -29,8 +36,8 @@ public class IfaceDoc {
 		return title;
 	}
 
-	public Text getSummary() {
-		return summary;
+	public TextFlow getSummary() {
+		return summaryFlow;
 	}
 	
 }
