@@ -13,5 +13,6 @@
 	<classpathentry kind="lib" path="/home/gzachos/Downloads/Lucene/lucene-8.5.1/suggest/lucene-suggest-8.5.1.jar"/>
 	<classpathentry kind="lib" path="/home/gzachos/Downloads/Lucene/lucene-8.5.1/memory/lucene-memory-8.5.1.jar"/>
 	<classpathentry kind="lib" path="/home/gzachos/Downloads/Lucene/lucene-8.5.1/queries/lucene-queries-8.5.1.jar"/>
+	<classpathentry kind="lib" path="/home/gzachos/Downloads/Lucene/lucene-8.5.1/analysis/common/lucene-analyzers-common-8.5.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

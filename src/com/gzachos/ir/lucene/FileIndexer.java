@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.LongPoint;
@@ -57,8 +59,11 @@ public class FileIndexer {
 				System.out.println("About to overwrite existing index...");
 			}
 			
-			// Create a new config, using StandardAnalyzer as the analyzer.
-			IndexWriterConfig iwc = new IndexWriterConfig();
+			Analyzer analyzer = CustomAnalyzer.builder()
+					.withTokenizer(Globals.TOKENIZER_NAME)
+					.addTokenFilter(Globals.TOKENFILTER_NAME)
+					.build();
+			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 			// iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 			iwc.setOpenMode(OpenMode.CREATE); // to overwrite index
 			iwc.setRAMBufferSizeMB(512.0);

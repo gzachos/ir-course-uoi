@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.DirectoryReader;
@@ -33,7 +33,7 @@ import com.gzachos.ir.Globals;
 public class DocumentSearcher {
 	IndexReader indexReader;
 	IndexSearcher indexSearcher;
-	Analyzer standardAnalyzer;
+	Analyzer analyzer;
 	MultiFieldQueryParser defaultQueryParser, currentQueryParser = null;
 	
 	public DocumentSearcher(String indexDir) {
@@ -41,8 +41,11 @@ public class DocumentSearcher {
 			Path indexDirPath = Paths.get(indexDir);
 			indexReader = DirectoryReader.open(FSDirectory.open(indexDirPath));
 			indexSearcher = new IndexSearcher(indexReader);
-			standardAnalyzer = new StandardAnalyzer();
-			defaultQueryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, standardAnalyzer, Globals.QUERY_BOOSTS);
+			analyzer = CustomAnalyzer.builder()
+					.withTokenizer(Globals.TOKENIZER_NAME)
+					.addTokenFilter(Globals.TOKENFILTER_NAME)
+					.build();
+			defaultQueryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, analyzer, Globals.QUERY_BOOSTS);
 			defaultQueryParser.setDefaultOperator(Operator.AND);
 			currentQueryParser = defaultQueryParser;
 		//	currentQueryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, standardAnalyzer);
@@ -96,7 +99,7 @@ public class DocumentSearcher {
 	}
 	
 	public Query parseAdvancedQuery(String queryStr, String fields[], Map<String, Float> boosts) {
-		currentQueryParser = new MultiFieldQueryParser(fields, standardAnalyzer, boosts);
+		currentQueryParser = new MultiFieldQueryParser(fields, analyzer, boosts);
 		Query query = parseQuery(queryStr);
 		currentQueryParser = defaultQueryParser;
 		return query;
@@ -185,7 +188,7 @@ public class DocumentSearcher {
 	
 	private ArrayList<String> getHighlightsPerDoc(Query query, TopDocs searchResults) {
 		ArrayList<String> highlightsPerDoc = new ArrayList<String>();
-		UnifiedHighlighter highlighter = new UnifiedHighlighter(indexSearcher, standardAnalyzer);
+		UnifiedHighlighter highlighter = new UnifiedHighlighter(indexSearcher, analyzer);
 		Map<String, String[]> highlights;
 		try {
 			highlights = highlighter.highlightFields(Globals.DOCUMENT_HIGHLIGHT_FIELDS, query, searchResults);
