@@ -23,15 +23,13 @@ public class SearchEngine {
 	private DocumentSearcher docSearcher;
 	private Stack<QueryInfo> queryInfos;
 	private QueryInfo currentQueryInfo;
-	private ArrayList<Document> pendingDocHits;
 	private IfaceSearchResult pendingSearchResults;
 	
 	private SearchEngine() {
-		 fileIndexer = new FileIndexer(Config.INDEX_PATH);
+		 fileIndexer = new FileIndexer(Config.CORPUS_PATH, Config.INDEX_PATH);
 		 createIndex(); // Index should be created before DocumentSearcher!
 		 docSearcher = new DocumentSearcher(Config.INDEX_PATH);
 		 queryInfos = new Stack<QueryInfo>();
-		 pendingDocHits = null;
 		 pendingSearchResults = null;
 		 overwriteIndex = false;
 	}

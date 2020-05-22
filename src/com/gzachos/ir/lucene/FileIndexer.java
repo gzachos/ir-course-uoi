@@ -22,15 +22,15 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-import com.gzachos.ir.Config;
 import com.gzachos.ir.Globals;
 
 
 public class FileIndexer {
 	private int n = 0;
-	private String indexPath;
+	private String indexPath, corpusPath;
 	
-	public FileIndexer(String indexPath) {
+	public FileIndexer( String corpusPath, String indexPath) {
+		this.corpusPath = corpusPath;
 		this.indexPath = indexPath;
 	}
 	
@@ -39,12 +39,12 @@ public class FileIndexer {
 			Path indexDirPath = Paths.get(indexPath);
 
 			if (!Files.isDirectory(indexDirPath)) {
-				System.err.println(Config.INDEX_PATH + ": Not a directory");
+				System.err.println(indexPath + ": Not a directory");
 				System.exit(-1);
 			}
 			
 			if (!Files.isWritable(indexDirPath)) {
-				System.err.println(Config.INDEX_PATH + ": Permission writing denied");
+				System.err.println(indexPath + ": Permission writing denied");
 				System.exit(-1);
 			}
 			
@@ -84,20 +84,20 @@ public class FileIndexer {
 	}
 	
 	private void indexDocs(final IndexWriter indexWriter) {
-		Path corpusDirPath = Paths.get(Config.CORPUS_PATH);
+		Path corpusDirPath = Paths.get(corpusPath);
 		
 		if (Files.notExists(corpusDirPath)) {
-			System.err.println(Config.CORPUS_PATH + ": No such file or directory");
+			System.err.println(corpusPath + ": No such file or directory");
 			System.exit(-1);
 		}
 		
 		if (!Files.isDirectory(corpusDirPath)) {
-			System.err.println(Config.CORPUS_PATH + ": Not a directory");
+			System.err.println(corpusPath + ": Not a directory");
 			System.exit(-1);
 		}
 		
 		if (!Files.isReadable(corpusDirPath)) {
-			System.err.println(Config.CORPUS_PATH + " : Permission reading denied");
+			System.err.println(corpusPath + " : Permission reading denied");
 			System.exit(-1);
 		}
 		

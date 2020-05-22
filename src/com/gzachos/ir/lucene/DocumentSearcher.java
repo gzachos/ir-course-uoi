@@ -48,8 +48,6 @@ public class DocumentSearcher {
 			defaultQueryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, analyzer, Globals.QUERY_BOOSTS);
 			defaultQueryParser.setDefaultOperator(Operator.AND);
 			currentQueryParser = defaultQueryParser;
-		//	currentQueryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, standardAnalyzer);
-		//	currentQueryParser.setDefaultOperator(Operator.AND);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
