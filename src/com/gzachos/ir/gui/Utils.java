@@ -80,4 +80,21 @@ public class Utils {
 		return str + "...";
 	}
 
+	public static boolean alreadySuggested(ArrayList<QuerySpellSuggestion> suggestions,
+			QuerySpellSuggestion newSuggestion) {
+		for (QuerySpellSuggestion suggestion : suggestions)
+			if (suggestion.equals(newSuggestion))
+				return true;
+		return false;
+	}
+	
+	public static QuerySpellSuggestion getSuggestionByTerm(ArrayList<QuerySpellSuggestion> suggestions,
+			String newTerm) {
+		for (QuerySpellSuggestion suggestion : suggestions)
+			if (suggestion.getNewTerm().equals(newTerm))
+				return suggestion;
+		return null;
+	}
+	
 }
+

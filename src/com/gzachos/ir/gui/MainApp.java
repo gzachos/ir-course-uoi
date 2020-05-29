@@ -19,7 +19,7 @@ public class MainApp extends Application {
 	private static MainApp instance = new MainApp();
 	private Stage stage;
 	private static String appName = "WikiSearch";
-	private static String appVersion = "0.4.0 BETA";
+	private static String appVersion = "0.9.0 BETA";
 	private HostServices hostServices;
 	
 	public static void main(String[] args) {

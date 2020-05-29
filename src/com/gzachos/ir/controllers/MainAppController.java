@@ -45,7 +45,7 @@ public class MainAppController implements Initializable {
 						warnUser("Search for at least one term!", "Missing User Input");
 						return;
 					}
-					String res = searchEngine.searchFor(queryStr, 5);
+					String res = searchEngine.searchFor(queryStr, 5, false);
 					if (res != null)
 						warnUser(res, "Search Error");
 					else

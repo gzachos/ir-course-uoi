@@ -68,7 +68,7 @@ public class DocumentSearcher {
 		return indexReader.numDocs();
 	}
 	
-	public Query parseQuery(String queryStr) {
+	public Query parseQuery(String queryStr, boolean spellChecked) {
 		if (queryStr == null)
 			return null;
 		queryStr = queryStr.trim();
@@ -76,7 +76,11 @@ public class DocumentSearcher {
 			return null;
 		
 		try {
+			if (spellChecked)
+				currentQueryParser.setDefaultOperator(Operator.OR);
 			Query query = currentQueryParser.parse(queryStr);
+			if (spellChecked)
+				currentQueryParser.setDefaultOperator(Operator.AND);
 			return query;
 		} catch (ParseException pe) {
 			// System.err.println("Cannot parse query!");
@@ -98,7 +102,7 @@ public class DocumentSearcher {
 	
 	public Query parseAdvancedQuery(String queryStr, String fields[], Map<String, Float> boosts) {
 		currentQueryParser = new MultiFieldQueryParser(fields, analyzer, boosts);
-		Query query = parseQuery(queryStr);
+		Query query = parseQuery(queryStr, false); // TODO add parameter
 		currentQueryParser = defaultQueryParser;
 		return query;
 	}
