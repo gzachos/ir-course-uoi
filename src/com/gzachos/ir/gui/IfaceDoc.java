@@ -12,7 +12,7 @@ public class IfaceDoc {
 	private Hyperlink url;
 	private Label title;
 	private TextFlow summaryFlow;
-	
+
 	public IfaceDoc(String urlStr, String titleStr, String summaryStr, String highlightStr) {
 		url = new Hyperlink(urlStr);
 		title = new Label(titleStr);
@@ -27,7 +27,7 @@ public class IfaceDoc {
 		url.setStyle("-fx-font-size: 13");
 		url.setPadding(new Insets(0, 0, 0, 0));
 	}
-	
+
 	public Hyperlink getUrl() {
 		return url;
 	}
@@ -39,5 +39,5 @@ public class IfaceDoc {
 	public TextFlow getSummary() {
 		return summaryFlow;
 	}
-	
+
 }

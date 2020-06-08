@@ -21,7 +21,7 @@ public class MainApp extends Application {
 	private static String appName = "WikiSearch";
 	private static String appVersion = "1.0.0 BETA";
 	private HostServices hostServices;
-	
+
 	public static void main(String[] args) {
 		launch(args);
 	}
@@ -33,7 +33,6 @@ public class MainApp extends Application {
 			Parent root = FXMLLoader.load(getClass().getResource("MainApp.fxml"));
 			Scene scene = new Scene(root);
 			primaryStage.setTitle(getAppNameAndVersion());
-			//primaryStage.setResizable(false);
 			primaryStage.setMinWidth(1280);
 			primaryStage.setMinHeight(720);
 			primaryStage.setOnCloseRequest(e -> {
@@ -41,9 +40,8 @@ public class MainApp extends Application {
 				exitNormally(stage);
 			});
 			primaryStage.setScene(scene);
-			primaryStage.getIcons().add(
-					new Image(MainApp.class.getResourceAsStream("../res/cse-logo.png"))
-			);
+			primaryStage.getIcons()
+					.add(new Image(MainApp.class.getResourceAsStream("../res/cse-logo.png")));
 			hostServices = getHostServices();
 			primaryStage.show();
 		} catch (Exception e) {
@@ -53,42 +51,40 @@ public class MainApp extends Application {
 
 	private void exitNormally(Stage stage) {
 		AtomicBoolean exitConfirmed = new AtomicBoolean(false);
-		Alert alert = new Alert(AlertType.CONFIRMATION,
-				"Are you sure you want to exit " + appName + "?");
+		Alert alert = new Alert(AlertType.CONFIRMATION, "Are you sure you want to exit " + appName + "?");
 		Stage alerstage = (Stage) alert.getDialogPane().getScene().getWindow();
-		alerstage.getIcons().add(
-				new Image(MainApp.class.getResourceAsStream("../res/cse-logo.png"))
-		);
+		alerstage.getIcons().add(new Image(MainApp.class.getResourceAsStream("../res/cse-logo.png")));
 		alert.showAndWait().ifPresent(response -> {
 			if (response == ButtonType.OK)
 				exitConfirmed.set(true);
 			else if (response == ButtonType.CANCEL)
 				;
 		});
-		
+
 		if (exitConfirmed.get() == true) {
 			SearchEngine.getInstance().closeDocumentSearcher();
 			stage.close();
 		}
 	}
-	
+
 	public static String getAppNameAndVersion() {
 		return appName + " " + appVersion;
 	}
-	
+
 	public static String getAppName() {
 		return appName;
 	}
-	
+
 	public static String getAppVersion() {
 		return appVersion;
 	}
-	
+
 	public HostServices getServices() {
 		return hostServices;
 	}
-	
+
 	public static MainApp getInstance() {
 		return instance;
 	}
+
 }

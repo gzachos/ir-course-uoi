@@ -35,17 +35,16 @@ public class DocumentSearcher {
 	IndexSearcher indexSearcher;
 	Analyzer analyzer;
 	MultiFieldQueryParser defaultQueryParser, currentQueryParser = null;
-	
+
 	public DocumentSearcher(String indexDir) {
 		try {
 			Path indexDirPath = Paths.get(indexDir);
 			indexReader = DirectoryReader.open(FSDirectory.open(indexDirPath));
 			indexSearcher = new IndexSearcher(indexReader);
-			analyzer = CustomAnalyzer.builder()
-					.withTokenizer(Globals.TOKENIZER_NAME)
-					.addTokenFilter(Globals.TOKENFILTER_NAME)
-					.build();
-			defaultQueryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, analyzer, Globals.QUERY_BOOSTS);
+			analyzer = CustomAnalyzer.builder().withTokenizer(Globals.TOKENIZER_NAME)
+					.addTokenFilter(Globals.TOKENFILTER_NAME).build();
+			defaultQueryParser = new MultiFieldQueryParser(Globals.DOCUMENT_FIELDS, analyzer,
+					Globals.QUERY_BOOSTS);
 			defaultQueryParser.setDefaultOperator(Operator.AND);
 			currentQueryParser = defaultQueryParser;
 		} catch (IOException e) {
@@ -55,7 +54,7 @@ public class DocumentSearcher {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void close() {
 		try {
 			indexReader.close();
@@ -63,18 +62,18 @@ public class DocumentSearcher {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public int getCorpusSize() {
 		return indexReader.numDocs();
 	}
-	
+
 	public Query parseQuery(String queryStr, boolean spellChecked) {
 		if (queryStr == null)
 			return null;
 		queryStr = queryStr.trim();
 		if (queryStr.length() == 0)
 			return null;
-		
+
 		try {
 			if (spellChecked)
 				currentQueryParser.setDefaultOperator(Operator.OR);
@@ -83,30 +82,29 @@ public class DocumentSearcher {
 				currentQueryParser.setDefaultOperator(Operator.AND);
 			return query;
 		} catch (ParseException pe) {
-			// System.err.println("Cannot parse query!");
 			return null;
 		}
 	}
-	
+
 	public Query buildRangeQuery(String field, long lowerBount, long upperBound) {
 		Query query = LongPoint.newRangeQuery(field, lowerBount, upperBound);
 		return query;
 	}
-	
+
 	public Query combineMultipleQueries(ArrayList<Query> queries) {
 		Builder queryBuilder = new BooleanQuery.Builder();
 		for (Query query : queries)
 			queryBuilder.add(query, BooleanClause.Occur.MUST);
 		return queryBuilder.build();
 	}
-	
+
 	public Query parseAdvancedQuery(String queryStr, String fields[], Map<String, Float> boosts) {
 		currentQueryParser = new MultiFieldQueryParser(fields, analyzer, boosts);
-		Query query = parseQuery(queryStr, false); // TODO add parameter
+		Query query = parseQuery(queryStr, false);
 		currentQueryParser = defaultQueryParser;
 		return query;
 	}
-	
+
 	public SearchResult executeQuery(Query query, int numPages, int sortOption, SearchResult prevResults) {
 		try {
 			return doPagingSearch(query, numPages, sortOption, prevResults);
@@ -115,7 +113,7 @@ public class DocumentSearcher {
 			return null;
 		}
 	}
-	
+
 	private SearchResult doPagingSearch(Query query, int numPages, int sortOption, SearchResult prevResults)
 			throws IOException {
 		int docsToFetch = numPages * Globals.HITS_PER_PAGE;
@@ -124,27 +122,26 @@ public class DocumentSearcher {
 		double searchTime = 0;
 		ArrayList<ScoreDoc> prevReturnedDocs = null;
 		Sort sort = Globals.SORT_OPTIONS[sortOption];
-		
+
 		if (prevResults != null && prevResults.getNumHits() > 0) {
 			prevReturnedDocs = prevResults.getHits();
 			numPrevReturnedDocs = prevReturnedDocs.size();
-			ScoreDoc lastReturnedDoc = prevReturnedDocs.get(numPrevReturnedDocs-1);
-			searchResults = indexSearcher.searchAfter(lastReturnedDoc,
-					query, docsToFetch + Globals.HITS_PER_PAGE, sort);
+			ScoreDoc lastReturnedDoc = prevReturnedDocs.get(numPrevReturnedDocs - 1);
+			searchResults = indexSearcher.searchAfter(lastReturnedDoc, query,
+					docsToFetch + Globals.HITS_PER_PAGE, sort);
 		} else {
 			System.out.println("Searching for: \"" + query.toString() + "\"");
 			long startTime = System.currentTimeMillis();
-			searchResults = indexSearcher.search(query,
-					docsToFetch + Globals.HITS_PER_PAGE, sort);
+			searchResults = indexSearcher.search(query, docsToFetch + Globals.HITS_PER_PAGE, sort);
 			searchTime = (System.currentTimeMillis() - startTime) / 1000.0;
 		}
-		boolean isPartialSearch = (prevResults != null); // TODO verify condition
-		
+		boolean isPartialSearch = (prevResults != null);
+
 		ArrayList<String> highlightsPerDoc = getHighlightsPerDoc(query, searchResults);
-		
+
 		ArrayList<String> returnedDocHighlights = new ArrayList<String>();
 		ArrayList<ScoreDoc> returnedDocs = new ArrayList<ScoreDoc>();
-		TotalHits totalHits = searchResults.totalHits; 
+		TotalHits totalHits = searchResults.totalHits;
 		int numTotalHits = Math.toIntExact(totalHits.value);
 		ScoreDoc[] hitsArray = searchResults.scoreDocs;
 		ArrayList<ScoreDoc> hits = new ArrayList<ScoreDoc>(Arrays.asList(hitsArray));
@@ -153,7 +150,7 @@ public class DocumentSearcher {
 			return new SearchResult(returnedDocs, returnedDocHighlights, searchTime, numTotalHits,
 					totalHits.relation, isPartialSearch);
 
-		ScoreDoc lastFetchedDoc = hits.get(numHits-1);
+		ScoreDoc lastFetchedDoc = hits.get(numHits - 1);
 		boolean haveEnoughTotalHits = (docsToFetch < numTotalHits);
 		int numReturnedDocs = 0;
 
@@ -172,32 +169,35 @@ public class DocumentSearcher {
 					break;
 			}
 
-			if (i == (numHits-1) && haveEnoughTotalHits) {
+			if (i == (numHits - 1) && haveEnoughTotalHits) {
 				int newDocsToFetch = (docsToFetch - numReturnedDocs) + Globals.HITS_PER_PAGE;
-				TopDocs newSearchResults = indexSearcher.searchAfter(lastFetchedDoc,
-						query, newDocsToFetch, sort);
+				TopDocs newSearchResults = indexSearcher.searchAfter(lastFetchedDoc, query,
+						newDocsToFetch, sort);
 				ScoreDoc[] newHitsArray = newSearchResults.scoreDocs;
 				ArrayList<ScoreDoc> newHits = new ArrayList<ScoreDoc>(Arrays.asList(newHitsArray));
 				hits.addAll(newHits);
 				ArrayList<String> newHighlightsPerDoc = getHighlightsPerDoc(query, searchResults);
 				highlightsPerDoc.addAll(newHighlightsPerDoc);
 				numHits += newHits.size();
-				lastFetchedDoc = hits.get(hits.size()-1); // In case of 0 hits, lastFetchedDoc valufe will be retained.
+				lastFetchedDoc = hits.get(hits.size() - 1); // In case of 0 hits, lastFetchedDoc value
+						                            // will be retained.
 			}
 		}
-		return new SearchResult(returnedDocs, returnedDocHighlights, searchTime, numTotalHits, totalHits.relation, isPartialSearch);
+		return new SearchResult(returnedDocs, returnedDocHighlights, searchTime, numTotalHits,
+				totalHits.relation, isPartialSearch);
 	}
-	
+
 	private ArrayList<String> getHighlightsPerDoc(Query query, TopDocs searchResults) {
 		ArrayList<String> highlightsPerDoc = new ArrayList<String>();
 		UnifiedHighlighter highlighter = new UnifiedHighlighter(indexSearcher, analyzer);
 		Map<String, String[]> highlights;
 		try {
-			highlights = highlighter.highlightFields(Globals.DOCUMENT_HIGHLIGHT_FIELDS, query, searchResults);
+			highlights = highlighter.highlightFields(Globals.DOCUMENT_HIGHLIGHT_FIELDS, query,
+					searchResults);
 		} catch (IOException e) {
 			return null;
 		}
-		
+
 		for (int i = 0; i < searchResults.scoreDocs.length; i++) {
 			String hstr = "";
 			for (String field : Globals.DOCUMENT_HIGHLIGHT_FIELDS) {
@@ -208,15 +208,15 @@ public class DocumentSearcher {
 			}
 			highlightsPerDoc.add(hstr);
 		}
-		
+
 		return highlightsPerDoc;
 	}
-	
-	private boolean alreadyReturnedDoc(Document doc, IndexSearcher indexSearcher, ArrayList<ScoreDoc> prevReturnedDocs,
-			ArrayList<ScoreDoc> returnedDocs) throws IOException {
+
+	private boolean alreadyReturnedDoc(Document doc, IndexSearcher indexSearcher,
+			ArrayList<ScoreDoc> prevReturnedDocs, ArrayList<ScoreDoc> returnedDocs) throws IOException {
 		Document prevDoc;
 		String docTitle = doc.get("title");
-		
+
 		if (prevReturnedDocs != null) {
 			for (int j = 0; j < prevReturnedDocs.size(); j++) {
 				prevDoc = indexSearcher.doc(prevReturnedDocs.get(j).doc);
@@ -224,7 +224,7 @@ public class DocumentSearcher {
 					return true;
 			}
 		}
-		
+
 		for (int j = 0; j < returnedDocs.size(); j++) {
 			prevDoc = indexSearcher.doc(returnedDocs.get(j).doc);
 			if (prevDoc.get("title").equals(docTitle))
@@ -232,16 +232,16 @@ public class DocumentSearcher {
 		}
 		return false;
 	}
-	
+
 	public void printReturnedDocs(SearchResult searchResult) {
 		int page = 0;
 
 		if (searchResult == null)
 			return;
-		
+
 		if (!searchResult.isPartialSearchResult())
 			System.out.println(searchResult.getStatsStr());
-		
+
 		ArrayList<ScoreDoc> scoreDocs = searchResult.getHits();
 		for (int i = 0; i < scoreDocs.size(); i++) {
 			Document doc;
@@ -254,20 +254,20 @@ public class DocumentSearcher {
 			String url = doc.get(Globals.URL_FIELD_NAME);
 			String title = doc.get(Globals.TITLE_FIELD_NAME);
 			String summary = doc.get(Globals.SUMMARY_FIELD_NAME);
-			
+
 			if (url != null) {
 				if (i % Globals.HITS_PER_PAGE == 0)
 					System.out.println("\n################## Page " + (++page) + "\n");
-				System.out.println((i+1) + " - '" + title + "' - " + url);
+				System.out.println((i + 1) + " - '" + title + "' - " + url);
 				System.out.println(summary);
 			}
 		}
 	}
-	
+
 	public ArrayList<Document> getDocuments(SearchResult searchResult) {
 		if (searchResult == null)
 			return null;
-		
+
 		ArrayList<Document> docs = new ArrayList<Document>();
 		ArrayList<ScoreDoc> scoreDocs = searchResult.getHits();
 		for (int i = 0; i < scoreDocs.size(); i++) {

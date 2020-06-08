@@ -23,19 +23,20 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 public class MainAppController implements Initializable {
-	private static MainAppController mainAppController = null;
 	private SearchEngine searchEngine;
-	
-	@FXML private VBox mainAppVBox;
-	@FXML private TextField mainSearchArea;
-	
+
+	@FXML
+	private VBox mainAppVBox;
+	@FXML
+	private TextField mainSearchArea;
+
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		searchEngine = SearchEngine.getInstance();
-		
+
 		String corpusSizeStr = String.valueOf(searchEngine.getCorpusSize());
 		mainSearchArea.setPromptText("Search among " + corpusSizeStr + " Wikipedia articles");
-		
+
 		mainSearchArea.setOnKeyTyped(new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(KeyEvent event) {
@@ -54,12 +55,10 @@ public class MainAppController implements Initializable {
 			}
 		});
 	}
-	
+
 	public void invokeResultPresenter() {
-		try{
-			FXMLLoader fxmlLoader = new FXMLLoader(
-					getClass().getResource("../gui/ResultPresenter.fxml")
-			);
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("../gui/ResultPresenter.fxml"));
 			Parent root = (Parent) fxmlLoader.load();
 			Stage stage = new Stage();
 			stage.initModality(Modality.APPLICATION_MODAL);
@@ -68,45 +67,32 @@ public class MainAppController implements Initializable {
 			stage.setOnCloseRequest(e -> searchEngine.clearCurrentQuery());
 			stage.setTitle(MainApp.getAppNameAndVersion());
 			stage.getIcons().add(
-					new Image(MainAppController.class.getResourceAsStream("../res/cse-logo.png"))
-			);
+					new Image(MainAppController.class.getResourceAsStream("../res/cse-logo.png")));
 			stage.setScene(new Scene(root));
 			stage.show();
 			root.requestFocus();
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	private static MainAppController getInstance() {
-		if (mainAppController == null)
-			mainAppController = new MainAppController();
-		return mainAppController;
-	}
-	
+
 	@FXML
 	private void showAboutApp() {
-		Alert info = new Alert(AlertType.INFORMATION, MainApp.getAppName()
-				+ "\nVersion: " + MainApp.getAppVersion() + "\n" + "License: GPLv2\n\n"
-				+ "Developed by George Z. Zachos and\n"
-				+ "Andrew Konstantinidis for the Information\n"
-				+ "Retrieval course @cse.uoi.gr\n"
-				+ "Instructor: Evaggelia Pitoura"
-		);
+		Alert info = new Alert(AlertType.INFORMATION,
+				MainApp.getAppName() + "\nVersion: " + MainApp.getAppVersion() + "\n"
+						+ "License: GPLv2\n\n" + "Developed by George Z. Zachos and\n"
+						+ "Andrew Konstantinidis for the Information\n"
+						+ "Retrieval course @cse.uoi.gr\n" + "Instructor: Evaggelia Pitoura");
 		Stage stage = (Stage) info.getDialogPane().getScene().getWindow();
-		stage.getIcons().add(
-				new Image(MainAppController.class.getResourceAsStream("../res/cse-logo.png"))
-		);
+		stage.getIcons().add(new Image(MainAppController.class.getResourceAsStream("../res/cse-logo.png")));
 		info.setHeaderText("About " + MainApp.getAppName());
 		info.showAndWait();
 	}
-	
+
 	@FXML
 	private void invokeAdvancedSearch() {
-		try{
-			FXMLLoader fxmlLoader = new FXMLLoader(
-					getClass().getResource("../gui/AdvancedSearch.fxml")
-			);
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("../gui/AdvancedSearch.fxml"));
 			Parent root = (Parent) fxmlLoader.load();
 			Stage stage = new Stage();
 			stage.initModality(Modality.APPLICATION_MODAL);
@@ -114,28 +100,25 @@ public class MainAppController implements Initializable {
 			stage.setOnCloseRequest(e -> searchEngine.clearCurrentQuery());
 			stage.setTitle(MainApp.getAppNameAndVersion());
 			stage.getIcons().add(
-					new Image(MainAppController.class.getResourceAsStream("../res/cse-logo.png"))
-			);
+					new Image(MainAppController.class.getResourceAsStream("../res/cse-logo.png")));
 			stage.setScene(new Scene(root));
 			stage.show();
 			root.requestFocus();
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@FXML
 	private void exitNormally() {
 		Stage stage = (Stage) mainAppVBox.getScene().getWindow();
 		stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
 	}
-	
+
 	private void warnUser(String warningText, String headerText) {
 		Alert warn = new Alert(AlertType.WARNING, warningText);
 		Stage warnstage = (Stage) warn.getDialogPane().getScene().getWindow();
-		warnstage.getIcons().add(
-				new Image(getClass().getResourceAsStream("../res/cse-logo.png"))
-		);
+		warnstage.getIcons().add(new Image(getClass().getResourceAsStream("../res/cse-logo.png")));
 		warn.setHeaderText(headerText);
 		warn.showAndWait();
 	}

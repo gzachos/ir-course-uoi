@@ -28,66 +28,68 @@ import javafx.stage.WindowEvent;
 
 public class AdvancedSearchController implements Initializable {
 	private SearchEngine searchEngine;
-	
-	@FXML private TextField andTextField, orTextField, notTextField, phraseTextField;
-	@FXML private CheckBox titleCheckBox, contentCheckBox, multimediaCheckBox,
-	                       quotesCheckBox, referencesCheckBox;
-	@FXML private ChoiceBox<String> updateChoiceBox, creationChoiceBox, sortChoiceBox;
-	@FXML private Button cacnelAdvSearchButton, advSearchButton;
-	
+
+	@FXML
+	private TextField andTextField, orTextField, notTextField, phraseTextField;
+	@FXML
+	private CheckBox titleCheckBox, contentCheckBox, multimediaCheckBox, quotesCheckBox, referencesCheckBox;
+	@FXML
+	private ChoiceBox<String> updateChoiceBox, creationChoiceBox, sortChoiceBox;
+	@FXML
+	private Button cacnelAdvSearchButton, advSearchButton;
+
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
 		searchEngine = SearchEngine.getInstance();
 		setUpChoiceBoxes();
 	}
-	
+
 	private void setUpChoiceBoxes() {
-		String options[] = {"Anytime", "Past 24h", "Past week", "Past month",
-				"Past three months", "Past six months", "Past year"};
+		String options[] = { "Anytime", "Past 24h", "Past week", "Past month", "Past three months",
+				"Past six months", "Past year" };
 		updateChoiceBox.getItems().addAll(options);
 		creationChoiceBox.getItems().addAll(options);
 		updateChoiceBox.getSelectionModel().select("Anytime");
 		creationChoiceBox.getSelectionModel().select("Anytime");
-		
-		String sortOptions[] = {"Relevance", "Publication Date - Ascending", "Publication Date - Descending",
-				"Modication Date - Ascending", "Modlication Date - Descending"};
+
+		String sortOptions[] = { "Relevance", "Publication Date - Ascending", "Publication Date - Descending",
+				"Modication Date - Ascending", "Modlication Date - Descending" };
 		sortChoiceBox.getItems().addAll(sortOptions);
 		sortChoiceBox.getSelectionModel().select("Relevance");
 	}
-	
+
 	private IfaceRangeQuery getRangeQuery(ChoiceBox<String> cbox) {
 		int selectedIndex = cbox.getSelectionModel().getSelectedIndex();
 		long toDate = (new Date()).getTime() / 1000; // Time since epoch GMT
 		long fromDate;
 		long secondsInOneDay = 86400;
 		switch (selectedIndex) {
-			case 1:
-				fromDate = toDate - secondsInOneDay;
-				break;
-			case 2:
-				fromDate = toDate - secondsInOneDay * 7;
-				break;
-			case 3:
-				fromDate = toDate - secondsInOneDay * 30;
-				break;
-			case 4:
-				fromDate = toDate - secondsInOneDay * 90;
-				break;
-			case 5:
-				fromDate = toDate - secondsInOneDay * 180;
-				break;
-			case 6:
-				fromDate = toDate - secondsInOneDay * 365;
-				break;
-			default:
-				return null;
+		case 1:
+			fromDate = toDate - secondsInOneDay;
+			break;
+		case 2:
+			fromDate = toDate - secondsInOneDay * 7;
+			break;
+		case 3:
+			fromDate = toDate - secondsInOneDay * 30;
+			break;
+		case 4:
+			fromDate = toDate - secondsInOneDay * 90;
+			break;
+		case 5:
+			fromDate = toDate - secondsInOneDay * 180;
+			break;
+		case 6:
+			fromDate = toDate - secondsInOneDay * 365;
+			break;
+		default:
+			return null;
 		}
-		String fieldName = (cbox == updateChoiceBox) ?
-				      Globals.UPDATE_TIME_FIELD_NAME :
-				  Globals.PUBLICATION_TIME_FIELD_NAME;
+		String fieldName = (cbox == updateChoiceBox) ? Globals.UPDATE_TIME_FIELD_NAME
+				: Globals.PUBLICATION_TIME_FIELD_NAME;
 		return new IfaceRangeQuery(fieldName, fromDate, toDate);
 	}
-	
+
 	private ArrayList<IfaceRangeQuery> getRangeQueries() {
 		ArrayList<IfaceRangeQuery> queries = new ArrayList<IfaceRangeQuery>();
 		IfaceRangeQuery query = getRangeQuery(creationChoiceBox);
@@ -98,11 +100,11 @@ public class AdvancedSearchController implements Initializable {
 			queries.add(query);
 		return queries;
 	}
-	
+
 	private int getSortOption() {
 		return sortChoiceBox.getSelectionModel().getSelectedIndex();
 	}
-	
+
 	@FXML
 	private void conductAdvancedSearch() {
 		String queryStr = generateQueryStr();
@@ -120,36 +122,33 @@ public class AdvancedSearchController implements Initializable {
 		else
 			invokeResultPresenter();
 	}
-	
+
 	public void invokeResultPresenter() {
-		try{
-			FXMLLoader fxmlLoader = new FXMLLoader(
-					getClass().getResource("../gui/ResultPresenter.fxml")
-			);
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("../gui/ResultPresenter.fxml"));
 			Parent root = (Parent) fxmlLoader.load();
 			Stage stage = new Stage();
 			stage.initModality(Modality.APPLICATION_MODAL);
 			stage.setMinWidth(1280);
-			stage.setMinHeight(720); // TODO verify value
+			stage.setMinHeight(720);
 			stage.setOnCloseRequest(e -> searchEngine.clearCurrentQuery());
 			stage.setTitle(MainApp.getAppNameAndVersion());
 			stage.getIcons().add(
-					new Image(MainAppController.class.getResourceAsStream("../res/cse-logo.png"))
-			);
+					new Image(MainAppController.class.getResourceAsStream("../res/cse-logo.png")));
 			stage.setScene(new Scene(root));
 			stage.show();
 			root.requestFocus();
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@FXML
 	private void cancelAdvancedSearch() {
 		Stage stage = (Stage) andTextField.getScene().getWindow();
 		stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
 	}
-	
+
 	private String generateQueryStr() {
 		String queryStr = "";
 		// TODO handle multiple whitespace in phrase(s)
@@ -169,7 +168,7 @@ public class AdvancedSearchController implements Initializable {
 			return null;
 		return queryStr;
 	}
-	
+
 	private String escape(String str) {
 		String newStr = "";
 		String tokens[] = str.split(" +");
@@ -178,10 +177,10 @@ public class AdvancedSearchController implements Initializable {
 		}
 		return newStr.strip();
 	}
-	
+
 	private String[] getFieldsToSearch() {
 		ArrayList<String> fields = new ArrayList<String>();
-		
+
 		if (titleCheckBox.isSelected())
 			fields.add(Globals.TITLE_FIELD_NAME);
 		if (contentCheckBox.isSelected())
@@ -195,13 +194,11 @@ public class AdvancedSearchController implements Initializable {
 		String[] fs = fields.toArray(new String[0]);
 		return fs;
 	}
-	
+
 	private void warnUser(String warningText, String headerText) {
 		Alert warn = new Alert(AlertType.WARNING, warningText);
 		Stage warnstage = (Stage) warn.getDialogPane().getScene().getWindow();
-		warnstage.getIcons().add(
-				new Image(getClass().getResourceAsStream("../res/cse-logo.png"))
-		);
+		warnstage.getIcons().add(new Image(getClass().getResourceAsStream("../res/cse-logo.png")));
 		warn.setHeaderText(headerText);
 		warn.showAndWait();
 	}

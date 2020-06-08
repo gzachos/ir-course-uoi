@@ -24,16 +24,15 @@ import org.apache.lucene.store.FSDirectory;
 
 import com.gzachos.ir.Globals;
 
-
 public class FileIndexer {
 	private int n = 0;
 	private String indexPath, corpusPath;
-	
-	public FileIndexer( String corpusPath, String indexPath) {
+
+	public FileIndexer(String corpusPath, String indexPath) {
 		this.corpusPath = corpusPath;
 		this.indexPath = indexPath;
 	}
-	
+
 	public void createIndex(boolean overwriteIndex) {
 		try {
 			Path indexDirPath = Paths.get(indexPath);
@@ -42,27 +41,25 @@ public class FileIndexer {
 				System.err.println(indexPath + ": Not a directory");
 				System.exit(-1);
 			}
-			
+
 			if (!Files.isWritable(indexDirPath)) {
 				System.err.println(indexPath + ": Permission writing denied");
 				System.exit(-1);
 			}
-			
+
 			System.out.println("Indexing files...");
 			Date startDate = new Date();
 			Directory indexDir = FSDirectory.open(indexDirPath);
-			
+
 			if (DirectoryReader.indexExists(indexDir)) {
 				System.out.println("Index already exists: " + indexDirPath.toString());
 				if (!overwriteIndex)
 					return;
 				System.out.println("About to overwrite existing index...");
 			}
-			
-			Analyzer analyzer = CustomAnalyzer.builder()
-					.withTokenizer(Globals.TOKENIZER_NAME)
-					.addTokenFilter(Globals.TOKENFILTER_NAME)
-					.build();
+
+			Analyzer analyzer = CustomAnalyzer.builder().withTokenizer(Globals.TOKENIZER_NAME)
+					.addTokenFilter(Globals.TOKENFILTER_NAME).build();
 			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 			// iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 			iwc.setOpenMode(OpenMode.CREATE); // to overwrite index
@@ -74,33 +71,33 @@ public class FileIndexer {
 			indexDir.close();
 			Date endDate = new Date();
 			double indexingDuration = (endDate.getTime() - startDate.getTime()) / 1000.0;
-			System.out.println("\nIndexing of " + numDocs + " documents finished in " 
-					+ indexingDuration + " seconds");
+			System.out.println("\nIndexing of " + numDocs + " documents finished in " + indexingDuration
+					+ " seconds");
 		} catch (Exception e) {
 			System.err.println("Error opening FSDirectory");
 			e.printStackTrace();
 			System.exit(-1);
 		}
 	}
-	
+
 	private void indexDocs(final IndexWriter indexWriter) {
 		Path corpusDirPath = Paths.get(corpusPath);
-		
+
 		if (Files.notExists(corpusDirPath)) {
 			System.err.println(corpusPath + ": No such file or directory");
 			System.exit(-1);
 		}
-		
+
 		if (!Files.isDirectory(corpusDirPath)) {
 			System.err.println(corpusPath + ": Not a directory");
 			System.exit(-1);
 		}
-		
+
 		if (!Files.isReadable(corpusDirPath)) {
 			System.err.println(corpusPath + " : Permission reading denied");
 			System.exit(-1);
 		}
-		
+
 		try {
 			Files.list(corpusDirPath).forEach(fp -> indexDoc(indexWriter, fp));
 		} catch (IOException e) {
@@ -108,7 +105,7 @@ public class FileIndexer {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void indexDoc(IndexWriter indexWriter, Path filePath) {
 		System.out.println(++n + " : Indexing \"" + filePath.getFileName() + "\"");
 		try {
@@ -119,17 +116,16 @@ public class FileIndexer {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private Document parseVirtualXml(Path filePath) throws IOException {
 		Document doc = new Document();
 		BufferedReader br = Files.newBufferedReader(filePath);
-		boolean readURL = false, readTitle = false, readHeading = false,
-				readContent = false, readUpdateTime = false, readPublicationTime = false;
-		String line, contentStr = "", mediaStr = "", quoteStr = "",
-				currHeading = "", summaryStr = "", url = "", title = "",
-				referencesStr = "";
+		boolean readURL = false, readTitle = false, readHeading = false, readContent = false,
+				readUpdateTime = false, readPublicationTime = false;
+		String line, contentStr = "", mediaStr = "", quoteStr = "", currHeading = "", summaryStr = "", url = "",
+				title = "", referencesStr = "";
 		long updateTime = 0, publicationTime = 0;
-		
+
 		while ((line = br.readLine()) != null) {
 			if (line.equals("<url>"))
 				readURL = true;
@@ -155,7 +151,7 @@ public class FileIndexer {
 				readUpdateTime = true;
 			else if (line.equals("</updated>"))
 				readUpdateTime = false;
-			
+
 			else if (readURL) {
 				url = line;
 			} else if (readTitle) {
@@ -176,7 +172,7 @@ public class FileIndexer {
 					summaryStr = "";
 				} else if (currHeading.equals("References")) {
 					referencesStr = "";
-				} else if (!currHeading.equals(title)){
+				} else if (!currHeading.equals(title)) {
 					contentStr += line + "\n";
 				}
 			} else if (readContent) {
@@ -185,20 +181,20 @@ public class FileIndexer {
 				else if (currHeading.equals("__quotes__"))
 					quoteStr += line + "\n";
 				else if (currHeading.equals("__summary__"))
-					summaryStr += line + "\n";  // Summary should only one line.
+					summaryStr += line + "\n"; // Summary should only one line.
 				else if (currHeading.contentEquals("References"))
 					referencesStr += line + "\n";
-				else  // Handle simple sections and infobox.
+				else // Handle simple sections and infobox.
 					contentStr += line + "\n";
 			}
 		}
 		br.close();
-		
+
 		doc.add(new StoredField(Globals.URL_FIELD_NAME, url));
 		doc.add(new TextField(Globals.TITLE_FIELD_NAME, title, Field.Store.YES));
 		doc.add(new TextField(Globals.CONTENT_FIELD_NAME, contentStr, Field.Store.YES));
 		doc.add(new StoredField(Globals.SUMMARY_FIELD_NAME, summaryStr));
-		
+
 		if (mediaStr.length() > 0)
 			doc.add(new TextField(Globals.MULTIMEDIA_FIELD_NAME, mediaStr, Field.Store.YES));
 		if (quoteStr.length() > 0)
@@ -213,8 +209,8 @@ public class FileIndexer {
 			doc.add(new LongPoint(Globals.UPDATE_TIME_FIELD_NAME, updateTime));
 			doc.add(new NumericDocValuesField(Globals.BY_UPDATE_TIME_FIELD_NAME, updateTime));
 		}
-		
+
 		return doc;
 	}
-	
+
 }

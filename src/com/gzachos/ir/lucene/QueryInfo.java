@@ -7,7 +7,7 @@ public class QueryInfo {
 	private Query query;
 	private int sortOption;
 	private SearchResult searchResult;
-	
+
 	public QueryInfo(String queryStr, Query query, int sortOption, SearchResult searchResult) {
 		this.setQueryStr(queryStr);
 		this.setQuery(query);
@@ -38,7 +38,7 @@ public class QueryInfo {
 	public void setQueryStr(String queryStr) {
 		this.queryStr = queryStr;
 	}
-	
+
 	public void appendToSearchResult(SearchResult searchResult) {
 		this.searchResult.getHits().addAll(searchResult.getHits());
 	}
@@ -50,5 +50,5 @@ public class QueryInfo {
 	public void setSortOption(int sortOption) {
 		this.sortOption = sortOption;
 	}
-	
+
 }

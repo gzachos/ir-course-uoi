@@ -7,18 +7,18 @@ import javafx.scene.text.Text;
 public class Utils {
 	public final static int MAX_HIGHLIGHT_LENGTH = 180;
 	public final static int MIN_SENTENCE_LENGTH = 25;
-	
+
 	public static ArrayList<Text> parseHighlightText(String highlightStr) {
 		ArrayList<Text> texts = new ArrayList<Text>();
 		if (highlightStr == null)
 			return texts;
 		if (!highlightStr.contains("<b>")) {
-		//	texts.add(new Text(highlightStr));
+			// texts.add(new Text(highlightStr));
 			return texts;
 		}
-		
+
 		String highlightString = shortenHighlightStr(highlightStr);
-		
+
 		while (true) {
 			int boldStart = highlightString.indexOf("<b>");
 			int boldEnd = highlightString.indexOf("</b>");
@@ -32,19 +32,19 @@ public class Utils {
 			}
 			String boldText = highlightString.substring(boldStart + "<b>".length(), boldEnd);
 			texts.add(getText(boldText, true));
-			
+
 			highlightString = highlightString.substring(boldEnd + "</b>".length());
 		}
-		
+
 		return texts;
 	}
-	
+
 	private static Text getText(String textStr, boolean bold) {
 		Text text = new Text(textStr);
-		text.setStyle(((bold) ? "-fx-font-weight: bold; " : "") +  "-fx-font-size: 12");
+		text.setStyle(((bold) ? "-fx-font-weight: bold; " : "") + "-fx-font-size: 12");
 		return text;
 	}
-	
+
 	private static String shortenHighlightStr(String highlightStr) {
 		String str = "";
 		String lines[] = highlightStr.split("\n");
@@ -62,7 +62,7 @@ public class Utils {
 		}
 		return str;
 	}
-	
+
 	private static String getSentencePart(String sentence, int previousLength) {
 		String str = "";
 		// The whole sentence fits.
@@ -70,7 +70,7 @@ public class Utils {
 			return " " + sentence + ".";
 		// We have to tokenize the sentence.
 		String[] words = sentence.split("\\s");
-		for (String word: words) {
+		for (String word : words) {
 			if (previousLength + str.length() + word.length() > MAX_HIGHLIGHT_LENGTH)
 				break;
 			str += " " + word;
@@ -87,7 +87,7 @@ public class Utils {
 				return true;
 		return false;
 	}
-	
+
 	public static QuerySpellSuggestion getSuggestionByTerm(ArrayList<QuerySpellSuggestion> suggestions,
 			String newTerm) {
 		for (QuerySpellSuggestion suggestion : suggestions)
@@ -95,6 +95,5 @@ public class Utils {
 				return suggestion;
 		return null;
 	}
-	
-}
 
+}

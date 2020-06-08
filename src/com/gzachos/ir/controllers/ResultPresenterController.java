@@ -38,28 +38,29 @@ public class ResultPresenterController implements Initializable {
 	private ArrayList<ArrayList<IfaceDoc>> totalIfaceDocs;
 	private int savedPageIndex;
 	private boolean spellChecked = false;
-	
-	@FXML private Pagination pagination;
+
+	@FXML
+	private Pagination pagination;
 	private HBox spellSuggestionsHBox = null;
-	
+
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		initResultPresenter();
 	}
-	
+
 	private void initResultPresenter() {
-		// TODO update title
 		searchEngine = SearchEngine.getInstance();
 		savedPageIndex = 0;
 		pagination.setMaxPageIndicatorCount(5);
-		
+
 		if (getSearchResults(false))
 			populatePages();
-		
+
 		pagination.currentPageIndexProperty().addListener(new ChangeListener<Number>() {
 			@Override
-			public void changed(ObservableValue<? extends Number> arg0, Number oldPageNum, Number newPageNum) {
-				if (newPageNum.intValue() == totalIfaceDocs.size()-1) {
+			public void changed(ObservableValue<? extends Number> arg0, Number oldPageNum,
+					Number newPageNum) {
+				if (newPageNum.intValue() == totalIfaceDocs.size() - 1) {
 					if (getSearchResults(true)) {
 						savedPageIndex = pagination.getCurrentPageIndex();
 						populatePages();
@@ -68,11 +69,11 @@ public class ResultPresenterController implements Initializable {
 			}
 		});
 	}
-	
+
 	private void resetResultPresenter() {
 		spellSuggestionsHBox = null;
 	}
-	
+
 	private void createSpellSuggestionsBox(ArrayList<QuerySpellSuggestion> suggestions) {
 		if (suggestions == null || suggestions.size() == 0 || spellChecked)
 			return;
@@ -84,13 +85,13 @@ public class ResultPresenterController implements Initializable {
 		nodes.add(didYouMeanText);
 		for (QuerySpellSuggestion suggestion : suggestions) {
 			Button termButton = new Button(suggestion.getNewTerm());
-			//termButton.setStyle("-fx-font-weight: bold; -fx-font-size: 14");
 			nodes.add(termButton);
 			termButton.setOnAction(new EventHandler<ActionEvent>() {
 				@Override
 				public void handle(ActionEvent ae) {
 					String newTerm = termButton.getText();
-					QuerySpellSuggestion suggestedQuery = Utils.getSuggestionByTerm(suggestions, newTerm);
+					QuerySpellSuggestion suggestedQuery = Utils.getSuggestionByTerm(suggestions,
+							newTerm);
 					String queryStr = suggestedQuery.getQueryStr();
 					spellChecked = true;
 					searchEngine.searchFor(queryStr, 5, spellChecked);
@@ -101,7 +102,7 @@ public class ResultPresenterController implements Initializable {
 		}
 		spellSuggestionsHBox.getChildren().addAll(nodes);
 	}
-	
+
 	private boolean getSearchResults(boolean isPartialSearch) {
 		IfaceSearchResult searchResults;
 		ArrayList<Document> docs;
@@ -116,11 +117,11 @@ public class ResultPresenterController implements Initializable {
 			createSpellSuggestionsBox(searchEngine.getCurrentQuerySuggestions());
 		}
 		docs = searchResults.getDocs();
-		highlights = searchResults.getHighlights(); // TODO check for null!
+		highlights = searchResults.getHighlights();
 		ArrayList<ArrayList<IfaceDoc>> ifaceDocs = new ArrayList<ArrayList<IfaceDoc>>();
 
 		boolean haveHighlights = (highlights != null && highlights.size() == docs.size());
-		
+
 		int pageNum = 0;
 		for (int i = 0; i < docs.size(); i++) {
 			if (i % Globals.HITS_PER_PAGE == 0) {
@@ -128,12 +129,9 @@ public class ResultPresenterController implements Initializable {
 				pageNum++;
 			}
 			Document doc = docs.get(i);
-			ifaceDocs.get(pageNum-1).add(new IfaceDoc(
-					doc.get(Globals.URL_FIELD_NAME),
-					doc.get(Globals.TITLE_FIELD_NAME),
-					doc.get(Globals.SUMMARY_FIELD_NAME),
-					(haveHighlights) ? highlights.get(i): null)
-			);
+			ifaceDocs.get(pageNum - 1).add(new IfaceDoc(doc.get(Globals.URL_FIELD_NAME),
+					doc.get(Globals.TITLE_FIELD_NAME), doc.get(Globals.SUMMARY_FIELD_NAME),
+					(haveHighlights) ? highlights.get(i) : null));
 		}
 		int numPages = pageNum;
 		if (isPartialSearch) {
@@ -145,12 +143,12 @@ public class ResultPresenterController implements Initializable {
 		}
 		return true;
 	}
-	
+
 	public void populatePages() {
 		pagination.setPageFactory(pageIndex -> {
 			ScrollPane scrollPane = new ScrollPane();
 			VBox vbox = new VBox();
-			vbox.setPadding(new Insets(10, 25 ,25, 25));
+			vbox.setPadding(new Insets(10, 25, 25, 25));
 			scrollPane.setContent(vbox);
 			Label statsLabel = new Label();
 			if (pageIndex == 0) {
@@ -189,11 +187,10 @@ public class ResultPresenterController implements Initializable {
 		pagination.setPageCount((totalNumPages == 0) ? 1 : totalNumPages);
 		pagination.setCurrentPageIndex(savedPageIndex);
 	}
-	
-	
+
 	private void viewArticle(IfaceDoc ifaceDoc) {
 		HostServices hostServices = MainApp.getInstance().getHostServices();
 		hostServices.showDocument(ifaceDoc.getUrl().getText());
 	}
-	
+
 }

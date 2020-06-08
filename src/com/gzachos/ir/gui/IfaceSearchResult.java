@@ -7,7 +7,7 @@ import org.apache.lucene.document.Document;
 public class IfaceSearchResult {
 	private ArrayList<Document> docs;
 	private ArrayList<String> highlights;
-	
+
 	public IfaceSearchResult() {
 	}
 
@@ -26,4 +26,5 @@ public class IfaceSearchResult {
 	public void setHighlights(ArrayList<String> highlights) {
 		this.highlights = highlights;
 	}
+
 }

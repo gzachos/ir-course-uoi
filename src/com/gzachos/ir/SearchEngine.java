@@ -22,7 +22,7 @@ import com.gzachos.ir.lucene.SpellingChecker;
 
 public class SearchEngine {
 	private static SearchEngine instance = null;
-	
+
 	boolean overwriteIndex;
 	private FileIndexer fileIndexer;
 	private SpellingChecker spellingChecker;
@@ -30,27 +30,27 @@ public class SearchEngine {
 	private Stack<QueryInfo> queryInfos;
 	private QueryInfo currentQueryInfo;
 	private IfaceSearchResult pendingSearchResults;
-	
+
 	private SearchEngine() {
-		 fileIndexer = new FileIndexer(Config.CORPUS_PATH, Config.INDEX_PATH);
-		 createIndex(); // Index should be created before DocumentSearcher!
-		 spellingChecker = new SpellingChecker(Config.INDEX_PATH, Config.SPELL_INDEX_PATH);
-		 docSearcher = new DocumentSearcher(Config.INDEX_PATH);
-		 queryInfos = new Stack<QueryInfo>();
-		 pendingSearchResults = null;
-		 overwriteIndex = false;
+		fileIndexer = new FileIndexer(Config.CORPUS_PATH, Config.INDEX_PATH);
+		createIndex(); // Index should be created before DocumentSearcher!
+		spellingChecker = new SpellingChecker(Config.INDEX_PATH, Config.SPELL_INDEX_PATH);
+		docSearcher = new DocumentSearcher(Config.INDEX_PATH);
+		queryInfos = new Stack<QueryInfo>();
+		pendingSearchResults = null;
+		overwriteIndex = false;
 	}
-	
+
 	public static SearchEngine getInstance() {
 		if (instance == null)
 			instance = new SearchEngine();
 		return instance;
 	}
-	
+
 	public String searchFor(String queryStr, int numPages, boolean spellChecked) {
 		int sortOption = Globals.DEFAULT_SORT_OPTION;
 		Query query = docSearcher.parseQuery(queryStr, spellChecked);
-		if (query == null) 
+		if (query == null)
 			return Globals.QUERY_PARSE_ERROR;
 		SearchResult searchResult = docSearcher.executeQuery(query, numPages, sortOption, null);
 		if (searchResult == null)
@@ -61,20 +61,16 @@ public class SearchEngine {
 		pendingSearchResults.setHighlights(searchResult.getHighlights());
 		return null;
 	}
-	
-	public String searchForAdvanced(String queryStr, ArrayList<IfaceRangeQuery> rangeQueries,
-			int numPages, String fields[], Map<String, Float> boosts, int sortOption) {
+
+	public String searchForAdvanced(String queryStr, ArrayList<IfaceRangeQuery> rangeQueries, int numPages,
+			String fields[], Map<String, Float> boosts, int sortOption) {
 		ArrayList<Query> queries = new ArrayList<Query>();
 		Query query = docSearcher.parseAdvancedQuery(queryStr, fields, boosts);
-		if (query == null) 
+		if (query == null)
 			return Globals.QUERY_PARSE_ERROR;
 		queries.add(query);
 		for (IfaceRangeQuery rq : rangeQueries) {
-			queries.add(docSearcher.buildRangeQuery(
-					rq.getField(),
-					rq.getLowerBound(),
-					rq.getUpperBound())
-			);
+			queries.add(docSearcher.buildRangeQuery(rq.getField(), rq.getLowerBound(), rq.getUpperBound()));
 		}
 		Query finalQuery = docSearcher.combineMultipleQueries(queries);
 		SearchResult searchResult = docSearcher.executeQuery(finalQuery, numPages, sortOption, null);
@@ -86,7 +82,7 @@ public class SearchEngine {
 		pendingSearchResults.setHighlights(searchResult.getHighlights());
 		return null;
 	}
-	
+
 	public IfaceSearchResult getPendingSearchResults() {
 		if (currentQueryInfo == null || pendingSearchResults == null)
 			return null;
@@ -94,28 +90,23 @@ public class SearchEngine {
 		pendingSearchResults = null;
 		return tmpSearchRes;
 	}
-	
+
 	public String getCurrentQueryStats() {
 		if (currentQueryInfo == null)
 			return "";
 		return currentQueryInfo.getSearchResult().getStatsStr();
 	}
-	
+
 	public void clearCurrentQuery() {
 		queryInfos.push(currentQueryInfo);
 		currentQueryInfo = null;
 	}
-	
+
 	public IfaceSearchResult searchAfter(int numPages) {
 		if (currentQueryInfo == null)
 			return null;
-		System.out.println("searchAfter - " + currentQueryInfo.getSortOption());
-		SearchResult searchResult = docSearcher.executeQuery(
-				currentQueryInfo.getQuery(),
-				numPages,
-				currentQueryInfo.getSortOption(),
-				currentQueryInfo.getSearchResult()
-		);
+		SearchResult searchResult = docSearcher.executeQuery(currentQueryInfo.getQuery(), numPages,
+				currentQueryInfo.getSortOption(), currentQueryInfo.getSearchResult());
 		// In order to keep lastReturnedDoc up-to-date.
 		currentQueryInfo.appendToSearchResult(searchResult);
 		IfaceSearchResult res = new IfaceSearchResult();
@@ -123,7 +114,7 @@ public class SearchEngine {
 		res.setHighlights(searchResult.getHighlights());
 		return res;
 	}
-	
+
 	public void createIndex() {
 		if (overwriteIndex) {
 			@SuppressWarnings("resource")
@@ -136,19 +127,19 @@ public class SearchEngine {
 		}
 		fileIndexer.createIndex(overwriteIndex);
 	}
-	
+
 	public void closeDocumentSearcher() {
 		docSearcher.close();
 	}
-	
+
 	public int getCorpusSize() {
 		return docSearcher.getCorpusSize();
 	}
-	
+
 	public ArrayList<String> getSuggestions(String term, String field) {
 		return spellingChecker.getSuggestions(term, field);
 	}
-	
+
 	public ArrayList<QuerySpellSuggestion> getQuerySuggestions(Query query) {
 		ArrayList<QuerySpellSuggestion> querySuggestions = new ArrayList<QuerySpellSuggestion>();
 		ArrayList<String> suggestions;
@@ -176,32 +167,11 @@ public class SearchEngine {
 		}
 		return querySuggestions;
 	}
-	
+
 	public ArrayList<QuerySpellSuggestion> getCurrentQuerySuggestions() {
 		if (currentQueryInfo == null)
 			return null;
 		return getQuerySuggestions(currentQueryInfo.getQuery());
 	}
-	
-/*	public void extractTerms(Query query) {
-		ArrayList<String> suggestions;
-		HashSet<Term> termsSet = new HashSet<Term>();
-		QueryVisitor queryVisitor = QueryVisitor.termCollector(termsSet);
-		query.visit(queryVisitor);
-		String queryStr = query.toString();
-		System.out.println(queryStr);
-		for (Term term : termsSet) {
-			String fieldTerm = term.toString();
-			String tokens[] = fieldTerm.split(":");
-			String field = tokens[0];
-			String termStr = tokens[1];
-			suggestions = spellingChecker.getSuggestions(termStr, field);
-			if (suggestions.size() >= 1) {
-				System.out.println("\n" + field);
-				String newQueryStr = queryStr.replaceAll(fieldTerm, field+":"+suggestions.get(0));
-				queryStr = newQueryStr;
-				System.out.println("Fixed: " + newQueryStr);
-			}
-		}
-	} */
+
 }

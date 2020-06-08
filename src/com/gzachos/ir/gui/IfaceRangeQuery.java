@@ -4,7 +4,7 @@ public class IfaceRangeQuery {
 	private String field;
 	private long lowerBound;
 	private long upperBound;
-	
+
 	public IfaceRangeQuery(String field, long lowerBound, long upperBound) {
 		this.field = field;
 		this.lowerBound = lowerBound;
@@ -14,7 +14,7 @@ public class IfaceRangeQuery {
 	public String getField() {
 		return field;
 	}
-	
+
 	public long getLowerBound() {
 		return lowerBound;
 	}
@@ -22,5 +22,5 @@ public class IfaceRangeQuery {
 	public long getUpperBound() {
 		return upperBound;
 	}
-	
+
 }

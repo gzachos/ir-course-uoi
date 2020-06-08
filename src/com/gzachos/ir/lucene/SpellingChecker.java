@@ -32,28 +32,8 @@ public class SpellingChecker {
 		this.spellIndexPath = spellIndexPath;
 		perFieldSpellchecker = new HashMap<String, SpellChecker>();
 		createIndex(false);
-		/*
-		try {
-			Path indexDirPath = Paths.get(indexPath);
-			Directory indexDirectory = FSDirectory.open(indexDirPath);
-			IndexReader indexReader = DirectoryReader.open(indexDirectory);
-	//		String[] suggestions = spellchecker.suggestSimilar("apachi", 10, indexReader, "title", SuggestMode.SUGGEST_WHEN_NOT_IN_INDEX);
-			String terms[] = {"virux", "viru", "airbas", "airbu", "airbs", "airus", "aibus", "arbus", "aibus", "irbus", "apachi", "pache"};
-			for (String field : Globals.DOCUMENT_FIELDS) {
-				System.out.println("###### " + field);
-				for (String term : terms) {
-					term = term.toLowerCase();
-					String[] suggestions = perFieldSpellchecker.get(field).suggestSimilar(term, 5, indexReader, field, SuggestMode.SUGGEST_WHEN_NOT_IN_INDEX);
-					System.out.println(term + " -> " + suggestions[0]);
-				}
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
 	}
-	
+
 	public void createIndex(boolean overwriteIndex) {
 		try {
 			Path spellIndexDirPath = Paths.get(spellIndexPath);
@@ -62,29 +42,28 @@ public class SpellingChecker {
 				System.err.println(spellIndexPath + ": Not a directory");
 				System.exit(-1);
 			}
-			
+
 			if (!Files.isWritable(spellIndexDirPath)) {
 				System.err.println(spellIndexPath + ": Permission writing denied");
 				System.exit(-1);
 			}
-			
-			analyzer = CustomAnalyzer.builder()
-					.withTokenizer(Globals.TOKENIZER_NAME)
-					.addTokenFilter(Globals.TOKENFILTER_NAME)
-					.build();
+
+			analyzer = CustomAnalyzer.builder().withTokenizer(Globals.TOKENIZER_NAME)
+					.addTokenFilter(Globals.TOKENFILTER_NAME).build();
 			Path indexDirPath = Paths.get(indexPath);
 			Directory indexDirectory = FSDirectory.open(indexDirPath);
 			IndexReader indexReader = DirectoryReader.open(indexDirectory);
-			
+
 			SpellChecker spellchecker;
 			for (String field : Globals.DOCUMENT_FIELDS) {
 				Date startDate = new Date();
 				System.out.println("Creating spell index for field '" + field + "'");
 				Path fieldSpellIndexPath = Paths.get(spellIndexPath, field);
 				Directory fieldSpellIndexDir = FSDirectory.open(fieldSpellIndexPath);
-				
+
 				if (DirectoryReader.indexExists(fieldSpellIndexDir)) {
-					System.out.println("Spell index already exists: " + fieldSpellIndexPath.toString());
+					System.out.println("Spell index already exists: "
+							+ fieldSpellIndexPath.toString());
 					if (!overwriteIndex) {
 						spellchecker = new SpellChecker(fieldSpellIndexDir);
 						perFieldSpellchecker.put(field, spellchecker);
@@ -92,21 +71,21 @@ public class SpellingChecker {
 					}
 					System.out.println("About to overwrite existing spell index...");
 				}
-				
+
 				spellchecker = new SpellChecker(fieldSpellIndexDir);
 				perFieldSpellchecker.put(field, spellchecker);
-				
+
 				IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 				iwc.setOpenMode(OpenMode.APPEND);
 				iwc.setRAMBufferSizeMB(512.0);
 				LuceneDictionary dictionary = new LuceneDictionary(indexReader, field);
-			//	spellchecker.setStringDistance(new NGramDistance());
+				// spellchecker.setStringDistance(new NGramDistance());
 				spellchecker.indexDictionary(dictionary, iwc, true);
 				fieldSpellIndexDir.close();
 				Date endDate = new Date();
 				double indexingDuration = (endDate.getTime() - startDate.getTime()) / 1000.0;
-				System.out.println("Finished creation of spell index in "
-						+ indexingDuration + " seconds");
+				System.out.println(
+						"Finished creation of spell index in " + indexingDuration + " seconds");
 			}
 			indexReader.close();
 		} catch (Exception e) {
@@ -115,22 +94,21 @@ public class SpellingChecker {
 			System.exit(-1);
 		}
 	}
-	
+
 	public ArrayList<String> getSuggestions(String term, String field) {
 		ArrayList<String> returnedSuggestions = new ArrayList<String>();
 		try {
 			Path indexDirPath = Paths.get(indexPath);
 			Directory indexDirectory = FSDirectory.open(indexDirPath);
 			IndexReader indexReader = DirectoryReader.open(indexDirectory);
-			term = analyzer.normalize(field, term).utf8ToString(); // TODO verify
-			String[] suggestions = perFieldSpellchecker.get(field)
-					.suggestSimilar(term, 5, indexReader, field, SuggestMode.SUGGEST_WHEN_NOT_IN_INDEX);
+			term = analyzer.normalize(field, term).utf8ToString();
+			String[] suggestions = perFieldSpellchecker.get(field).suggestSimilar(term, 5, indexReader,
+					field, SuggestMode.SUGGEST_WHEN_NOT_IN_INDEX);
 			for (String suggestion : suggestions) {
 				if (!suggestion.equals(term))
 					returnedSuggestions.add(suggestion);
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return returnedSuggestions;
