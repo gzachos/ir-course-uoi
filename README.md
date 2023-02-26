@@ -28,7 +28,7 @@ This search engine supports multiple features. For example:
 ![7-indexing.png](./screenshots/7-indexing.png)
 
  
- # License
+# License
  
 [GNU GENERAL PUBLIC LICENSE Version 2, June 1991](LICENSE)
 
