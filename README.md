@@ -17,6 +17,7 @@ This search engine supports multiple features. For example:
 
 
 # Screenshots
+
 ![0-main-window.png](./screenshots/0-main-window.png)
 ![1-airplane.png](./screenshots/1-airplane.png)
 ![2-advanced-search.png](./screenshots/2-advanced-search.png)
@@ -28,6 +29,7 @@ This search engine supports multiple features. For example:
 
  
  # License
+ 
 [GNU GENERAL PUBLIC LICENSE Version 2, June 1991](LICENSE)
 
 For the license statements of 3rd party software, please refer to [lucene-8.5.1](lucene-8.5.1)
